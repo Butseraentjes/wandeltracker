@@ -14,8 +14,7 @@ import {
     serverTimestamp,
     query,
     where,
-    onSnapshot,
-    orderBy
+    onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 // Firebase configuratie
@@ -134,6 +133,38 @@ export async function createProject(projectData) {
     }
 }
 
+// Projecten ophalen
+export function subscribeToProjects(callback) {
+    const user = auth.currentUser;
+    if (!user) return null;
+
+    // Vereenvoudigde query zonder orderBy
+    const projectsQuery = query(
+        collection(db, "projects"),
+        where("userId", "==", user.uid)
+    );
+
+    return onSnapshot(projectsQuery, 
+        (snapshot) => {
+            const projects = snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+            // Client-side sortering
+            projects.sort((a, b) => {
+                const dateA = a.createdAt?.toDate?.() || new Date(0);
+                const dateB = b.createdAt?.toDate?.() || new Date(0);
+                return dateB - dateA;
+            });
+            callback(projects);
+        },
+        (error) => {
+            console.error('Error in subscribeToProjects:', error);
+            callback([]);
+        }
+    );
+}
+
 // Helper functies
 export async function getCurrentUser() {
     return new Promise((resolve, reject) => {
@@ -147,26 +178,6 @@ export async function getCurrentUser() {
                 reject(error);
             }
         );
-    });
-}
-
-// Projecten ophalen
-export function subscribeToProjects(callback) {
-    const user = auth.currentUser;
-    if (!user) return null;
-
-    const projectsQuery = query(
-        collection(db, "projects"),
-        where("userId", "==", user.uid),
-        orderBy("createdAt", "desc")
-    );
-
-    return onSnapshot(projectsQuery, (snapshot) => {
-        const projects = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }));
-        callback(projects);
     });
 }
 
