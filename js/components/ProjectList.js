@@ -9,19 +9,24 @@ const ProjectList = () => {
 
     React.useEffect(() => {
         console.log('ProjectList useEffect running...');
+        let mounted = true;
         let unsubscribe = null;
 
         const setupSubscription = async () => {
             try {
                 unsubscribe = subscribeToProjects((newProjects) => {
                     console.log('Received projects:', newProjects);
-                    setProjects(newProjects || []);
-                    setLoading(false);
+                    if (mounted) {
+                        setProjects(newProjects || []);
+                        setLoading(false);
+                    }
                 });
             } catch (err) {
                 console.error('Error in subscribeToProjects:', err);
-                setError(err.message || 'Er is een fout opgetreden bij het laden van de projecten');
-                setLoading(false);
+                if (mounted) {
+                    setError(err.message || 'Er is een fout opgetreden bij het laden van de projecten');
+                    setLoading(false);
+                }
             }
         };
 
@@ -29,73 +34,79 @@ const ProjectList = () => {
 
         return () => {
             console.log('ProjectList cleanup running...');
+            mounted = false;
             if (unsubscribe) {
                 unsubscribe();
             }
         };
     }, []);
 
-    if (loading) {
-        return React.createElement('div', { className: 'text-center p-4' },
-            'Projecten laden...'
+    // Voorkom re-renders als de state niet verandert
+    const renderedContent = React.useMemo(() => {
+        if (loading) {
+            return React.createElement('div', { className: 'text-center p-4' },
+                'Projecten laden...'
+            );
+        }
+
+        if (error) {
+            return React.createElement('div', { className: 'text-red-500 p-4' },
+                `Er is een fout opgetreden: ${error}`
+            );
+        }
+
+        if (!projects || projects.length === 0) {
+            return React.createElement('div', { className: 'text-center text-gray-500 p-8' },
+                'Je hebt nog geen projecten. Maak een nieuw project aan om te beginnen!'
+            );
+        }
+
+        return React.createElement(
+            'div',
+            { className: 'grid gap-4 md:grid-cols-2 lg:grid-cols-3' },
+            projects.map(project => {
+                try {
+                    const location = project.location || {};
+                    const createdAt = project.createdAt ? 
+                        (typeof project.createdAt.toDate === 'function' ? 
+                            project.createdAt.toDate().toLocaleDateString() : 
+                            new Date(project.createdAt).toLocaleDateString())
+                        : 'Onbekende datum';
+
+                    return React.createElement(
+                        'div',
+                        {
+                            key: project.id || Math.random(),
+                            className: 'bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow'
+                        },
+                        [
+                            React.createElement('h3', 
+                                { className: 'text-lg font-semibold mb-2' },
+                                project.name || 'Naamloos project'
+                            ),
+                            React.createElement('p',
+                                { className: 'text-gray-600 text-sm mb-2' },
+                                `${location.street || ''} ${location.number || ''}, ${location.postalCode || ''} ${location.city || ''}`
+                            ),
+                            project.description && React.createElement('p',
+                                { className: 'text-gray-700 mb-4' },
+                                project.description
+                            ),
+                            React.createElement('div',
+                                { className: 'text-sm text-gray-500' },
+                                `Aangemaakt op: ${createdAt}`
+                            )
+                        ]
+                    );
+                } catch (err) {
+                    console.error('Error rendering project:', err, project);
+                    return null;
+                }
+            }).filter(Boolean)
         );
-    }
+    }, [loading, error, projects]);
 
-    if (error) {
-        return React.createElement('div', { className: 'text-red-500 p-4' },
-            `Er is een fout opgetreden: ${error}`
-        );
-    }
-
-    if (!projects || projects.length === 0) {
-        return React.createElement('div', { className: 'text-center text-gray-500 p-8' },
-            'Je hebt nog geen projecten. Maak een nieuw project aan om te beginnen!'
-        );
-    }
-
-    return React.createElement(
-        'div',
-        { className: 'grid gap-4 md:grid-cols-2 lg:grid-cols-3' },
-        projects.map(project => {
-            try {
-                const location = project.location || {};
-                const createdAt = project.createdAt ? 
-                    (typeof project.createdAt.toDate === 'function' ? 
-                        project.createdAt.toDate().toLocaleDateString() : 
-                        new Date(project.createdAt).toLocaleDateString())
-                    : 'Onbekende datum';
-
-                return React.createElement(
-                    'div',
-                    {
-                        key: project.id || Math.random(),
-                        className: 'bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow'
-                    },
-                    [
-                        React.createElement('h3', 
-                            { className: 'text-lg font-semibold mb-2' },
-                            project.name || 'Naamloos project'
-                        ),
-                        React.createElement('p',
-                            { className: 'text-gray-600 text-sm mb-2' },
-                            `${location.street || ''} ${location.number || ''}, ${location.postalCode || ''} ${location.city || ''}`
-                        ),
-                        project.description && React.createElement('p',
-                            { className: 'text-gray-700 mb-4' },
-                            project.description
-                        ),
-                        React.createElement('div',
-                            { className: 'text-sm text-gray-500' },
-                            `Aangemaakt op: ${createdAt}`
-                        )
-                    ]
-                );
-            } catch (err) {
-                console.error('Error rendering project:', err, project);
-                return null;
-            }
-        }).filter(Boolean)
-    );
+    return renderedContent;
 };
 
 export default ProjectList;
