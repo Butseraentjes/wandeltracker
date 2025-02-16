@@ -1,9 +1,9 @@
 // 🔹 Firebase SDK laden via CDN (geen npm nodig)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// 🔹 Firebase configuratie (gecorrigeerd)
+// 🔹 Firebase configuratie
 const firebaseConfig = {
     apiKey: "AIzaSyAgT_uX_5RrP7CKiI5-KpBSUXvvT928qik",
     authDomain: "wandeltracker-3692d.firebaseapp.com",
@@ -90,5 +90,87 @@ onAuthStateChanged(auth, async (user) => {
         // Gebruiker is niet ingelogd
         document.getElementById("login-container").style.display = "block";
         document.getElementById("main-content").style.display = "none";
+    }
+});
+
+// 🔹 Modal elementen
+const modal = document.getElementById("new-project-modal");
+const newProjectBtn = document.getElementById("new-project-btn");
+const closeBtn = document.querySelector(".close");
+const cancelBtn = document.getElementById("cancel-project");
+const projectForm = document.getElementById("new-project-form");
+const getLocationBtn = document.getElementById("get-location");
+
+// 🔹 Modal openen
+newProjectBtn.addEventListener("click", () => {
+    modal.style.display = "block";
+});
+
+// 🔹 Modal sluiten (via X of Annuleren)
+const closeModal = () => {
+    modal.style.display = "none";
+    projectForm.reset();
+};
+
+closeBtn.addEventListener("click", closeModal);
+cancelBtn.addEventListener("click", closeModal);
+window.addEventListener("click", (e) => {
+    if (e.target === modal) closeModal();
+});
+
+// 🔹 Huidige locatie ophalen
+getLocationBtn.addEventListener("click", () => {
+    if (navigator.geolocation) {
+        getLocationBtn.textContent = "Locatie ophalen...";
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                document.getElementById("latitude").value = position.coords.latitude;
+                document.getElementById("longitude").value = position.coords.longitude;
+                getLocationBtn.textContent = "Gebruik huidige locatie";
+            },
+            (error) => {
+                console.error("Fout bij ophalen locatie:", error);
+                alert("Kon de locatie niet ophalen. Controleer of je locatietoegang hebt gegeven.");
+                getLocationBtn.textContent = "Gebruik huidige locatie";
+            }
+        );
+    } else {
+        alert("Geolocatie wordt niet ondersteund door je browser.");
+    }
+});
+
+// 🔹 Project aanmaken
+projectForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const projectName = document.getElementById("project-name").value;
+    const latitude = parseFloat(document.getElementById("latitude").value);
+    const longitude = parseFloat(document.getElementById("longitude").value);
+    const description = document.getElementById("project-description").value;
+
+    try {
+        const user = auth.currentUser;
+        if (!user) throw new Error("Niet ingelogd");
+
+        // Nieuw project toevoegen aan Firestore
+        const projectRef = await addDoc(collection(db, "projects"), {
+            userId: user.uid,
+            name: projectName,
+            startLocation: { latitude, longitude },
+            description: description,
+            createdAt: serverTimestamp(),
+            totalDistance: 0,
+            history: {}
+        });
+
+        alert("Project succesvol aangemaakt!");
+        closeModal();
+        
+        // TODO: Project toevoegen aan de UI
+        // Hier kunnen we later code toevoegen om het project direct in de UI te tonen
+
+    } catch (error) {
+        console.error("Fout bij aanmaken project:", error);
+        alert("Er ging iets mis bij het aanmaken van het project. Probeer het opnieuw.");
     }
 });
