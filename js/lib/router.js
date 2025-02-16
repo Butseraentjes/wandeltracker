@@ -3,6 +3,7 @@ export class Router {
     constructor(routes) {
         this.routes = routes;
         this.currentView = null;
+        this.isNavigating = false;
         
         // Event listeners voor navigatie
         window.addEventListener('popstate', () => this.handleRoute());
@@ -17,6 +18,12 @@ export class Router {
 
     // Route handler
     async handleRoute() {
+        if (this.isNavigating) {
+            console.log('Navigation already in progress, skipping...');
+            return;
+        }
+
+        this.isNavigating = true;
         const path = window.location.pathname;
         const route = this.routes[path] || this.routes['/404'];
         const mainContent = document.getElementById('main-content');
@@ -25,7 +32,7 @@ export class Router {
             // Toon loading spinner
             document.getElementById('loading-spinner').classList.remove('hidden');
 
-            // Clean up vorige view
+            // Clean up vorige view als die bestaat
             if (this.currentView && this.currentView.cleanup) {
                 await this.currentView.cleanup();
             }
@@ -35,7 +42,9 @@ export class Router {
             
             // Render view content
             const content = await this.currentView.render();
-            mainContent.innerHTML = content;
+            if (content) {
+                mainContent.innerHTML = content;
+            }
 
             // Initialize view na render
             if (this.currentView.initialize) {
@@ -44,20 +53,25 @@ export class Router {
 
             // Update active navigation
             this.updateNavigation(path);
-
         } catch (error) {
             console.error('Error handling route:', error);
             mainContent.innerHTML = '<div class="error">Er is iets misgegaan bij het laden van de pagina.</div>';
         } finally {
             // Verberg loading spinner
             document.getElementById('loading-spinner').classList.add('hidden');
+            this.isNavigating = false;
         }
     }
 
     // Navigatie functie
-    navigate(path) {
+    async navigate(path) {
+        if (this.isNavigating) {
+            console.log('Navigation already in progress, skipping...');
+            return;
+        }
+        
         window.history.pushState({}, '', path);
-        this.handleRoute();
+        await this.handleRoute();
     }
 
     // Update active navigation status
@@ -74,8 +88,8 @@ export class Router {
     }
 
     // Start de router
-    start() {
-        this.handleRoute();
+    async start() {
+        await this.handleRoute();
     }
 }
 
@@ -83,6 +97,7 @@ export class Router {
 export class View {
     constructor() {
         this.isInitialized = false;
+        this.isDestroyed = false;
     }
 
     // Render method moet worden overschreven door child classes
@@ -92,11 +107,14 @@ export class View {
 
     // Optional initialize method
     async initialize() {
-        this.isInitialized = true;
+        if (!this.isDestroyed) {
+            this.isInitialized = true;
+        }
     }
 
     // Optional cleanup method
     async cleanup() {
+        this.isDestroyed = true;
         this.isInitialized = false;
     }
 }
