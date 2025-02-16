@@ -263,29 +263,6 @@ footer {
     margin-top: auto;
 }
 
-/* Visibility classes */
-.visible {
-    display: block !important;
-}
-
-.hidden {
-    display: none !important;
-}
-
-/* Initial states */
-#main-content {
-    display: none;
-}
-
-#login-container {
-    display: block;
-}
-
-/* Projects container */
-.projects-container {
-    margin-top: 2rem;
-}
-
 /* Responsieve aanpassingen */
 @media (max-width: 768px) {
     .feature-grid {
@@ -304,9 +281,26 @@ footer {
     }
 }
 
-/* User info stijlen */
+/* Visibility classes */
+.visible {
+    display: block !important;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Initial states */
+#main-content {
+    display: none;
+}
+
+#login-container {
+    display: block;
+}
+
+/* User info styling */
 #user-info {
     color: #4b5563;
     font-size: 0.9rem;
 }
-
