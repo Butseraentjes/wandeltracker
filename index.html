@@ -1,99 +1,70 @@
-import React from 'react';
-import { MapPin, Plus, Calendar, Route } from 'lucide-react';
-
-const HomePage = () => {
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-blue-600">WandelTracker</h1>
-          <div id="user-info" className="text-gray-600"></div>
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WandelTracker</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header-container">
+            <h1>WandelTracker</h1>
+            <p id="user-info"></p>
         </div>
-      </header>
+    </header>
 
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
-        {/* Login Container */}
-        <div id="login-container" className="text-center py-8">
-          <h2 className="text-3xl font-bold text-gray-800 mb-4">
-            Welkom bij WandelTracker
-          </h2>
-          <p className="text-gray-600 mb-6">
-            Houd je wandelingen bij en zie hoever je al gekomen bent!
-          </p>
-          <button
-            id="google-login-btn"
-            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition duration-200 flex items-center mx-auto"
-          >
-            <svg className="w-6 h-6 mr-2" viewBox="0 0 24 24">
-              <path
-                fill="currentColor"
-                d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.748L12.545,10.239z"
-              />
-            </svg>
-            Inloggen met Google
-          </button>
+    <!-- Login Container -->
+    <div id="login-container" class="container">
+        <div class="login-box">
+            <h2>Welkom bij WandelTracker</h2>
+            <p>Houd je wandelingen bij en zie hoever je al gekomen bent!</p>
+            <button id="google-login-btn" class="google-btn">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google Logo">
+                Inloggen met Google
+            </button>
         </div>
-
-        {/* Dashboard Container */}
-        <div id="main-content" className="hidden">
-          {/* Project Overview */}
-          <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-gray-800">Mijn Projecten</h2>
-              <button className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg flex items-center">
-                <Plus className="w-5 h-5 mr-2" />
-                Nieuw Project
-              </button>
-            </div>
-
-            {/* Features Grid */}
-            <div className="grid md:grid-cols-3 gap-6">
-              <div className="bg-blue-50 p-6 rounded-lg">
-                <MapPin className="w-8 h-8 text-blue-500 mb-3" />
-                <h3 className="font-bold text-gray-800 mb-2">Start Locatie</h3>
-                <p className="text-gray-600">
-                  Stel je startpunt in om je wandelafstand te meten
-                </p>
-              </div>
-
-              <div className="bg-green-50 p-6 rounded-lg">
-                <Calendar className="w-8 h-8 text-green-500 mb-3" />
-                <h3 className="font-bold text-gray-800 mb-2">Dagelijks Bijhouden</h3>
-                <p className="text-gray-600">
-                  Voer eenvoudig je dagelijkse wandelingen in
-                </p>
-              </div>
-
-              <div className="bg-purple-50 p-6 rounded-lg">
-                <Route className="w-8 h-8 text-purple-500 mb-3" />
-                <h3 className="font-bold text-gray-800 mb-2">Volg Je Voortgang</h3>
-                <p className="text-gray-600">
-                  Bekijk hoever je al gewandeld hebt vanaf je startpunt
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Logout Button */}
-          <button
-            id="logout-btn"
-            className="text-gray-600 hover:text-gray-800 font-medium"
-          >
-            Uitloggen
-          </button>
-        </div>
-      </main>
-
-      {/* Footer */}
-      <footer className="bg-gray-50 mt-auto">
-        <div className="container mx-auto px-4 py-6 text-center text-gray-600">
-          <p>&copy; 2025 WandelTracker - Volg je wandelavontuur</p>
-        </div>
-      </footer>
     </div>
-  );
-};
 
-export default HomePage;
+    <!-- Main Content (Dashboard) -->
+    <div id="main-content" class="container">
+        <div class="dashboard">
+            <div class="dashboard-header">
+                <h2>Mijn Projecten</h2>
+                <button id="new-project-btn" class="primary-btn">
+                    + Nieuw Project
+                </button>
+            </div>
+
+            <!-- Feature Cards -->
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="icon">📍</div>
+                    <h3>Start Locatie</h3>
+                    <p>Stel je startpunt in om je wandelafstand te meten</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">📅</div>
+                    <h3>Dagelijks Bijhouden</h3>
+                    <p>Voer eenvoudig je dagelijkse wandelingen in</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🎯</div>
+                    <h3>Volg Je Voortgang</h3>
+                    <p>Bekijk hoever je al gewandeld hebt vanaf je startpunt</p>
+                </div>
+            </div>
+
+            <button id="logout-btn" class="secondary-btn">Uitloggen</button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 WandelTracker - Volg je wandelavontuur</p>
+    </footer>
+
+    <script type="module" src="firebase.js"></script>
+</body>
+</html>
