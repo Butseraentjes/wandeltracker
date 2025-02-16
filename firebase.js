@@ -22,11 +22,12 @@ const provider = new GoogleAuthProvider();
 // 🔹 Google Login functie
 document.getElementById("google-login-btn").addEventListener("click", async () => {
     try {
+        // Eerst proberen met popup
         const result = await signInWithPopup(auth, provider);
         const user = result.user;
         console.log("Ingelogd als:", user.displayName);
         
-        // 🔹 Sla gebruiker op in Firestore (als nog niet bestaat)
+        // Gebruiker opslaan in Firestore
         await setDoc(doc(db, "users", user.uid), {
             email: user.email,
             displayName: user.displayName,
@@ -37,16 +38,17 @@ document.getElementById("google-login-btn").addEventListener("click", async () =
         alert("Succesvol ingelogd als: " + user.displayName);
     } catch (error) {
         console.error("Fout bij Google login:", error.message);
-        alert("Fout bij Google login: " + error.message);
         
-        // 🔹 Alternatieve login methode als popup geblokkeerd is
+        // Als popup mislukt, probeer redirect
         if (error.code === "auth/popup-blocked" || error.code === "auth/unauthorized-domain") {
             try {
                 await signInWithRedirect(auth, provider);
             } catch (redirectError) {
                 console.error("Fout bij redirect login:", redirectError.message);
-                alert("Fout bij redirect login: " + redirectError.message);
+                alert("Fout bij inloggen. Probeer het opnieuw of controleer of je het juiste domein gebruikt.");
             }
+        } else {
+            alert("Fout bij inloggen: " + error.message);
         }
     }
 });
@@ -55,7 +57,7 @@ document.getElementById("google-login-btn").addEventListener("click", async () =
 document.getElementById("logout-btn").addEventListener("click", async () => {
     try {
         await signOut(auth);
-        alert("Succesvol uitgelogd!");
+        console.log("Succesvol uitgelogd");
         window.location.reload();
     } catch (error) {
         console.error("Fout bij uitloggen:", error.message);
@@ -63,7 +65,7 @@ document.getElementById("logout-btn").addEventListener("click", async () => {
     }
 });
 
-// 🔹 Controleer of gebruiker ingelogd is
+// 🔹 Controleer login status
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         // Gebruiker is ingelogd
@@ -71,12 +73,12 @@ onAuthStateChanged(auth, async (user) => {
         document.getElementById("main-content").style.display = "block";
         document.getElementById("user-info").innerText = "Ingelogd als: " + user.displayName;
         
-        // 🔹 Controleer of gebruiker al een profiel heeft
+        // Controleer/maak gebruikersprofiel
         const docRef = doc(db, "users", user.uid);
         const docSnap = await getDoc(docRef);
         
         if (!docSnap.exists()) {
-            // Maak nieuw gebruikersprofiel aan
+            // Nieuw gebruikersprofiel aanmaken
             await setDoc(docRef, {
                 email: user.email,
                 displayName: user.displayName,
