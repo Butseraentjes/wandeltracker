@@ -6,45 +6,55 @@ class HomeView extends View {
     constructor() {
         super();
         this.root = null;
+        this.isDestroyed = false;
     }
 
     async render() {
         console.log('HomeView render start');
         
-        // Eerst de container structuur opzetten
         const mainContent = document.getElementById('main-content');
-        if (!mainContent) return;
+        if (!mainContent || this.isDestroyed) return;
 
-        mainContent.innerHTML = `
-            <div class="dashboard">
-                <div class="dashboard-header">
-                    <h2>Mijn Projecten</h2>
-                    <button id="new-project-btn" class="primary-btn">
-                        + Nieuw Project
-                    </button>
+        // Setup base structure only if needed
+        if (!document.querySelector('.dashboard')) {
+            mainContent.innerHTML = `
+                <div class="dashboard">
+                    <div class="dashboard-header">
+                        <h2>Mijn Projecten</h2>
+                        <button id="new-project-btn" class="primary-btn">
+                            + Nieuw Project
+                        </button>
+                    </div>
+                    <div id="projects-list"></div>
                 </div>
-                <div id="projects-list"></div>
-            </div>
-        `;
+            `;
+        }
 
         try {
-            // Event listener voor nieuwe project knop
-            document.getElementById('new-project-btn')?.addEventListener('click', showModal);
+            // Bind events only if they're not already bound
+            const newProjectBtn = document.getElementById('new-project-btn');
+            if (newProjectBtn && !newProjectBtn.hasListener) {
+                newProjectBtn.addEventListener('click', showModal);
+                newProjectBtn.hasListener = true;
+            }
             
-            // ProjectList renderen
+            // Mount React component only if not already mounted
             const container = document.getElementById('projects-list');
-            if (!container) throw new Error('Projects list container not found');
+            if (!container || this.isDestroyed) return;
 
-            const { default: ProjectList } = await import('./components/ProjectList.js');
-            const root = ReactDOM.createRoot(container);
-            this.root = root; // Root opslaan voor cleanup
-            root.render(React.createElement(ProjectList));
+            if (!this.root) {
+                const { default: ProjectList } = await import('./components/ProjectList.js');
+                this.root = ReactDOM.createRoot(container);
+                if (!this.isDestroyed) {
+                    this.root.render(React.createElement(ProjectList));
+                }
+            }
             
             console.log('HomeView render complete');
         } catch (error) {
             console.error('Error rendering ProjectList:', error);
             const container = document.getElementById('projects-list');
-            if (container) {
+            if (container && !this.isDestroyed) {
                 container.innerHTML = '<div class="error">Er is iets misgegaan bij het laden van de projecten.</div>';
             }
         }
@@ -54,21 +64,32 @@ class HomeView extends View {
 
     async cleanup() {
         console.log('HomeView cleanup start');
+        this.isDestroyed = true;
+
         try {
-            // Verwijder event listener
-            document.getElementById('new-project-btn')?.removeEventListener('click', showModal);
+            // Cleanup event listeners
+            const newProjectBtn = document.getElementById('new-project-btn');
+            if (newProjectBtn && newProjectBtn.hasListener) {
+                newProjectBtn.removeEventListener('click', showModal);
+                delete newProjectBtn.hasListener;
+            }
             
-            // Root unmounten
+            // Cleanup React root
             if (this.root) {
-                this.root.unmount();
-                this.root = null;
+                await new Promise(resolve => {
+                    // Give React time to cleanup
+                    setTimeout(() => {
+                        this.root.unmount();
+                        this.root = null;
+                        resolve();
+                    }, 0);
+                });
             }
         } catch (error) {
             console.error('Error in cleanup:', error);
         }
     }
 }
-
 // Settings View
 class SettingsView extends View {
     async render() {
