@@ -8,13 +8,22 @@ const ProjectList = () => {
 
     // Effect voor het ophalen van projecten
     React.useEffect(() => {
-        setLoading(true);
+        let unsubscribe = null;
         
-        // Subscribe to projects
-        const unsubscribe = subscribeToProjects((newProjects) => {
-            setProjects(newProjects);
+        try {
+            setLoading(true);
+            
+            // Subscribe to projects
+            unsubscribe = subscribeToProjects((newProjects) => {
+                console.log('Nieuwe projecten ontvangen:', newProjects); // Debug log
+                setProjects(newProjects);
+                setLoading(false);
+            });
+        } catch (err) {
+            console.error('Error in ProjectList effect:', err);
+            setError(err.message);
             setLoading(false);
-        });
+        }
 
         // Cleanup subscription on unmount
         return () => {
@@ -24,18 +33,23 @@ const ProjectList = () => {
         };
     }, []); // Empty dependency array -> run once on mount
 
+    // Debug logs
+    console.log('ProjectList render state:', { loading, error, projectCount: projects.length });
+
     if (loading) {
-        return React.createElement('div', { className: 'text-center p-4' }, 'Projecten laden...');
+        return React.createElement('div', { className: 'text-center p-4' }, 
+            'Projecten laden...'
+        );
     }
 
     if (error) {
-        return React.createElement('div', { className: 'text-red-500 p-4' }, error);
+        return React.createElement('div', { className: 'text-red-500 p-4' },
+            `Error: ${error}`
+        );
     }
 
-    if (projects.length === 0) {
-        return React.createElement(
-            'div',
-            { className: 'text-center text-gray-500 p-8' },
+    if (!projects || projects.length === 0) {
+        return React.createElement('div', { className: 'text-center text-gray-500 p-8' },
             'Je hebt nog geen projecten. Maak een nieuw project aan om te beginnen!'
         );
     }
@@ -44,45 +58,48 @@ const ProjectList = () => {
     return React.createElement(
         'div',
         { className: 'grid gap-4 md:grid-cols-2 lg:grid-cols-3' },
-        projects.map(project => 
-            React.createElement(
+        projects.map(project => {
+            // Safely handle missing data
+            const location = project.location || {};
+            const createdAt = project.createdAt ? project.createdAt.toDate().toLocaleDateString() : 'Onbekende datum';
+            
+            return React.createElement(
                 'div',
                 { 
-                    key: project.id,
+                    key: project.id || Math.random(),
                     className: 'bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow'
                 },
                 [
-                    // Project Title
                     React.createElement(
                         'h3',
                         { className: 'text-lg font-semibold mb-2' },
-                        project.name
+                        project.name || 'Naamloos project'
                     ),
                     
-                    // Project Location
                     React.createElement(
                         'p',
                         { className: 'text-gray-600 text-sm mb-2' },
-                        `${project.location.street} ${project.location.number}, ${project.location.postalCode} ${project.location.city}`
+                        `${location.street || ''} ${location.number || ''}, ${location.postalCode || ''} ${location.city || ''}`
                     ),
                     
-                    // Project Description (if exists)
                     project.description && React.createElement(
                         'p',
                         { className: 'text-gray-700 mb-4' },
                         project.description
                     ),
                     
-                    // Creation Date
                     React.createElement(
                         'div',
                         { className: 'text-sm text-gray-500' },
-                        `Aangemaakt op: ${project.createdAt.toDate().toLocaleDateString()}`
+                        `Aangemaakt op: ${createdAt}`
                     )
                 ]
-            )
-        )
+            );
+        })
     );
 };
+
+// Debug log wanneer component geladen wordt
+console.log('ProjectList component loaded');
 
 export default ProjectList;
