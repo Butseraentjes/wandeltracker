@@ -12,7 +12,7 @@
 }
 
 /* Buttons */
-.btn {
+.primary-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -23,10 +23,6 @@
     transition: all 0.2s;
     border: none;
     font-size: 1rem;
-}
-
-.primary-btn {
-    composes: btn;
     background: var(--primary-color);
     color: var(--white);
 }
@@ -36,7 +32,16 @@
 }
 
 .secondary-btn {
-    composes: btn;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius-md);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    font-size: 1rem;
     background: transparent;
     color: var(--secondary-color);
 }
@@ -46,18 +51,26 @@
 }
 
 .google-btn {
-    composes: btn;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-radius: var(--border-radius-md);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    font-size: 1rem;
     background: #ea4335;
     color: var(--white);
     gap: var(--spacing-sm);
-    padding: var(--spacing-md) var(--spacing-lg);
 }
 
 .google-btn:hover {
     background: #d63125;
 }
 
-.google-btn img {
+.google-btn svg {
     width: 24px;
     height: 24px;
 }
