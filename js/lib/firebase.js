@@ -8,9 +8,14 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { 
     getFirestore,
+    collection,
     doc, 
     setDoc,
-    serverTimestamp 
+    serverTimestamp,
+    query,
+    where,
+    onSnapshot,
+    orderBy
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 // Firebase configuratie
@@ -113,13 +118,16 @@ export async function createProject(projectData) {
         const user = auth.currentUser;
         if (!user) throw new Error("Geen gebruiker ingelogd");
 
-        const response = await setDoc(doc(db, "projects", projectData.name), {
+        const projectsRef = collection(db, "projects");
+        const newProjectRef = doc(projectsRef);
+
+        await setDoc(newProjectRef, {
             ...projectData,
             userId: user.uid,
             createdAt: serverTimestamp()
         });
 
-        return response;
+        return newProjectRef.id;
     } catch (error) {
         console.error("Error creating project:", error);
         throw error;
@@ -139,6 +147,26 @@ export async function getCurrentUser() {
                 reject(error);
             }
         );
+    });
+}
+
+// Projecten ophalen
+export function subscribeToProjects(callback) {
+    const user = auth.currentUser;
+    if (!user) return null;
+
+    const projectsQuery = query(
+        collection(db, "projects"),
+        where("userId", "==", user.uid),
+        orderBy("createdAt", "desc")
+    );
+
+    return onSnapshot(projectsQuery, (snapshot) => {
+        const projects = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+        callback(projects);
     });
 }
 
