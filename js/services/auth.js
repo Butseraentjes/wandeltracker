@@ -4,9 +4,10 @@ import {
     GoogleAuthProvider, 
     signInWithPopup, 
     signInWithRedirect, 
-    signOut 
+    signOut, 
+    onAuthStateChanged 
 } from "firebase/auth";
-import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "../config/firebase-config.js";
 
 class AuthService {
@@ -20,15 +21,16 @@ class AuthService {
             await this._createOrUpdateUserProfile(result.user);
             return result.user;
         } catch (error) {
-            if (error.code === "auth/popup-blocked" || 
-                error.code === "auth/unauthorized-domain") {
+            console.error("Login error:", error);
+            if (error.code === "auth/popup-blocked") {
                 try {
                     return await signInWithRedirect(auth, this.provider);
                 } catch (redirectError) {
-                    throw new Error("Fout bij redirect login: " + redirectError.message);
+                    console.error("Redirect error:", redirectError);
+                    throw new Error("Fout bij inloggen via redirect");
                 }
             }
-            throw new Error("Fout bij inloggen: " + error.message);
+            throw error;
         }
     }
 
@@ -36,34 +38,26 @@ class AuthService {
         try {
             await signOut(auth);
         } catch (error) {
-            throw new Error("Fout bij uitloggen: " + error.message);
+            console.error("Logout error:", error);
+            throw new Error("Fout bij uitloggen");
         }
     }
 
     async _createOrUpdateUserProfile(user) {
         const userRef = doc(db, "users", user.uid);
-        const userDoc = await getDoc(userRef);
-
-        if (!userDoc.exists()) {
+        try {
             await setDoc(userRef, {
                 email: user.email,
                 displayName: user.displayName,
-                history: {},
-                createdAt: serverTimestamp()
-            });
-        } else {
-            await setDoc(userRef, {
                 lastLogin: serverTimestamp()
             }, { merge: true });
+        } catch (error) {
+            console.error("Error updating user profile:", error);
         }
     }
 
     onAuthStateChanged(callback) {
-        return auth.onAuthStateChanged(callback);
-    }
-
-    getCurrentUser() {
-        return auth.currentUser;
+        return onAuthStateChanged(auth, callback);
     }
 }
 
