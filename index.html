@@ -22,45 +22,49 @@
         h1 {
             color: #007bff;
         }
-        input, button {
+        button {
             width: 100%;
             padding: 10px;
             margin: 8px 0;
-            border: 1px solid #ddd;
+            border: none;
             border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
         }
-        button {
+        .google-btn {
+            background-color: #db4437;
+            color: white;
+        }
+        .google-btn:hover {
+            background-color: #b33429;
+        }
+        .logout-btn {
             background-color: #007bff;
             color: white;
-            border: none;
-            cursor: pointer;
-            font-weight: bold;
         }
-        button:hover {
+        .logout-btn:hover {
             background-color: #0056b3;
         }
         #main-content {
-            display: none; /* Verberg alles tot iemand is ingelogd */
+            display: none; /* Verberg dashboard tot gebruiker is ingelogd */
         }
     </style>
 </head>
 <body>
 
+    <!-- 🔹 Login-container (wordt verborgen na inloggen) -->
     <div class="container" id="login-container">
         <h1>WandelTracker</h1>
-        <p>Log in om verder te gaan.</p>
-        <input type="email" id="email" placeholder="E-mail">
-        <input type="password" id="password" placeholder="Wachtwoord">
-        <button id="login-btn">Inloggen</button>
-        <button id="register-btn">Registreren</button>
-        <p id="auth-message"></p>
+        <p>Log in met Google om verder te gaan.</p>
+        <button class="google-btn" id="google-login-btn">Inloggen met Google</button>
     </div>
 
+    <!-- 🔹 Dashboard-container (zichtbaar na inloggen) -->
     <div id="main-content">
         <div class="container">
             <h2>Welkom bij WandelTracker</h2>
             <p id="user-info"></p>
-            <button id="logout-btn">Uitloggen</button>
+            <button class="logout-btn" id="logout-btn">Uitloggen</button>
         </div>
     </div>
 
