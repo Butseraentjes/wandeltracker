@@ -4,7 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WandelTracker</title>
-    <link rel="stylesheet" href="styles.css">
+    
+    <!-- CSS imports -->
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/modal.css">
 </head>
 <body>
     <!-- Header -->
@@ -21,7 +25,7 @@
             <h2>Welkom bij WandelTracker</h2>
             <p>Houd je wandelingen bij en zie hoever je al gekomen bent!</p>
             <button id="google-login-btn" class="google-btn">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google Logo">
+                <img src="/images/google-logo.svg" alt="Google Logo">
                 Inloggen met Google
             </button>
         </div>
@@ -58,7 +62,7 @@
 
             <!-- Projects List -->
             <div id="projects-list" class="projects-container">
-                <!-- Projecten komen hier -->
+                <!-- Projects will be loaded here dynamically -->
             </div>
         </div>
 
@@ -79,9 +83,31 @@
                            placeholder="Bijv. Wandelen 2025">
                 </div>
                 <div class="form-group">
-                    <label for="address">Start Locatie:</label>
-                    <input type="text" id="address" required 
-                           placeholder="Voer een adres in (bijv. Stationsstraat 1, Gemeente)">
+                    <label for="street">Straat:</label>
+                    <input type="text" id="street" required 
+                           placeholder="Straatnaam">
+                </div>
+                <div class="form-group">
+                    <label for="house-number">Huisnummer:</label>
+                    <input type="text" id="house-number" required 
+                           placeholder="Nummer">
+                </div>
+                <div class="form-group">
+                    <label for="postal-code">Postcode:</label>
+                    <input type="text" id="postal-code" required 
+                           placeholder="0000">
+                </div>
+                <div class="form-group">
+                    <label for="city">Gemeente:</label>
+                    <input type="text" id="city" required 
+                           placeholder="Gemeente">
+                </div>
+                <div class="form-group">
+                    <label for="country">Land:</label>
+                    <select id="country" required>
+                        <option value="BE">België</option>
+                        <option value="NL">Nederland</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label for="project-description">Beschrijving (optioneel):</label>
@@ -100,11 +126,20 @@
         </div>
     </div>
 
+    <!-- Error/Success Message Container -->
+    <div id="message-container" class="message-container"></div>
+
     <!-- Footer -->
     <footer>
         <p>&copy; 2025 WandelTracker - Volg je wandelavontuur</p>
     </footer>
 
-    <script type="module" src="firebase.js"></script>
+    <!-- Firebase SDK -->
+    <script type="module" src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js"></script>
+
+    <!-- Application Scripts -->
+    <script type="module" src="js/app.js"></script>
 </body>
 </html>
