@@ -1,5 +1,5 @@
 import { Router, View } from './lib/router.js';
-import { initializeAuth, loginWithGoogle, logout } from './lib/firebase.js';
+import { initializeAuth, loginWithGoogle, logout, createProject } from './lib/firebase.js';
 
 // Home View
 class HomeView extends View {
@@ -50,6 +50,18 @@ const routes = {
 // Initialize Router
 const router = new Router(routes);
 
+// Modal functions
+function showModal() {
+    const modal = document.getElementById('project-modal');
+    modal.classList.remove('hidden');
+}
+
+function hideModal() {
+    const modal = document.getElementById('project-modal');
+    modal.classList.add('hidden');
+    document.getElementById('project-form').reset();
+}
+
 // Setup event listeners
 document.addEventListener('DOMContentLoaded', () => {
     // Login button
@@ -81,6 +93,69 @@ document.addEventListener('DOMContentLoaded', () => {
                 alert('Uitloggen mislukt. Probeer het opnieuw.');
             } finally {
                 document.getElementById('loading-spinner').classList.add('hidden');
+            }
+        });
+    }
+
+    // New Project button
+    const newProjectBtn = document.getElementById('new-project-btn');
+    if (newProjectBtn) {
+        newProjectBtn.addEventListener('click', showModal);
+    }
+
+    // Close modal button
+    const closeModalBtn = document.querySelector('.close-modal');
+    if (closeModalBtn) {
+        closeModalBtn.addEventListener('click', hideModal);
+    }
+
+    // Cancel project button
+    const cancelProjectBtn = document.getElementById('cancel-project');
+    if (cancelProjectBtn) {
+        cancelProjectBtn.addEventListener('click', hideModal);
+    }
+
+    // Project form submission
+    const projectForm = document.getElementById('project-form');
+    if (projectForm) {
+        projectForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            try {
+                document.getElementById('loading-spinner').classList.remove('hidden');
+                
+                const projectData = {
+                    name: document.getElementById('project-name').value,
+                    location: {
+                        street: document.getElementById('project-street').value,
+                        number: document.getElementById('project-number').value,
+                        postalCode: document.getElementById('project-postal').value,
+                        city: document.getElementById('project-city').value
+                    },
+                    description: document.getElementById('project-description').value,
+                    createdAt: new Date()
+                };
+
+                await createProject(projectData);
+                hideModal();
+                alert('Project succesvol aangemaakt!');
+                // Later zullen we hier de projectenlijst verversen
+                
+            } catch (error) {
+                console.error('Error creating project:', error);
+                alert('Er is iets misgegaan bij het aanmaken van het project. Probeer het opnieuw.');
+            } finally {
+                document.getElementById('loading-spinner').classList.add('hidden');
+            }
+        });
+    }
+
+    // Click outside modal to close
+    const modal = document.getElementById('project-modal');
+    if (modal) {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                hideModal();
             }
         });
     }
