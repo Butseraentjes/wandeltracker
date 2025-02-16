@@ -1,50 +1,49 @@
 import { subscribeToProjects } from '../lib/firebase.js';
 
+console.log('ProjectList module loading...'); // Debug log
+
 const ProjectList = () => {
-    // State setup using React hooks
+    console.log('ProjectList component initializing...'); // Debug log
+    
     const [projects, setProjects] = React.useState([]);
     const [loading, setLoading] = React.useState(true);
     const [error, setError] = React.useState(null);
 
-    // Effect voor het ophalen van projecten
     React.useEffect(() => {
+        console.log('ProjectList useEffect running...'); // Debug log
         let unsubscribe = null;
-        
+
         try {
-            setLoading(true);
-            
-            // Subscribe to projects
             unsubscribe = subscribeToProjects((newProjects) => {
-                console.log('Nieuwe projecten ontvangen:', newProjects); // Debug log
+                console.log('Received projects:', newProjects); // Debug log
                 setProjects(newProjects);
                 setLoading(false);
             });
         } catch (err) {
-            console.error('Error in ProjectList effect:', err);
+            console.error('Error in subscribeToProjects:', err);
             setError(err.message);
             setLoading(false);
         }
 
-        // Cleanup subscription on unmount
         return () => {
+            console.log('ProjectList cleanup running...'); // Debug log
             if (unsubscribe) {
                 unsubscribe();
             }
         };
-    }, []); // Empty dependency array -> run once on mount
+    }, []);
 
-    // Debug logs
-    console.log('ProjectList render state:', { loading, error, projectCount: projects.length });
+    console.log('ProjectList rendering with state:', { loading, error, projectCount: projects?.length }); // Debug log
 
     if (loading) {
-        return React.createElement('div', { className: 'text-center p-4' }, 
+        return React.createElement('div', { className: 'text-center p-4' },
             'Projecten laden...'
         );
     }
 
     if (error) {
         return React.createElement('div', { className: 'text-red-500 p-4' },
-            `Error: ${error}`
+            `Er is een fout opgetreden: ${error}`
         );
     }
 
@@ -54,42 +53,37 @@ const ProjectList = () => {
         );
     }
 
-    // Render project list
     return React.createElement(
         'div',
         { className: 'grid gap-4 md:grid-cols-2 lg:grid-cols-3' },
         projects.map(project => {
-            // Safely handle missing data
             const location = project.location || {};
-            const createdAt = project.createdAt ? project.createdAt.toDate().toLocaleDateString() : 'Onbekende datum';
-            
+            const createdAt = project.createdAt ? 
+                (typeof project.createdAt.toDate === 'function' ? 
+                    project.createdAt.toDate().toLocaleDateString() : 
+                    'Ongeldige datum') 
+                : 'Onbekende datum';
+
             return React.createElement(
                 'div',
-                { 
+                {
                     key: project.id || Math.random(),
                     className: 'bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow'
                 },
                 [
-                    React.createElement(
-                        'h3',
+                    React.createElement('h3', 
                         { className: 'text-lg font-semibold mb-2' },
                         project.name || 'Naamloos project'
                     ),
-                    
-                    React.createElement(
-                        'p',
+                    React.createElement('p',
                         { className: 'text-gray-600 text-sm mb-2' },
                         `${location.street || ''} ${location.number || ''}, ${location.postalCode || ''} ${location.city || ''}`
                     ),
-                    
-                    project.description && React.createElement(
-                        'p',
+                    project.description && React.createElement('p',
                         { className: 'text-gray-700 mb-4' },
                         project.description
                     ),
-                    
-                    React.createElement(
-                        'div',
+                    React.createElement('div',
                         { className: 'text-sm text-gray-500' },
                         `Aangemaakt op: ${createdAt}`
                     )
@@ -99,7 +93,6 @@ const ProjectList = () => {
     );
 };
 
-// Debug log wanneer component geladen wordt
-console.log('ProjectList component loaded');
+console.log('ProjectList module loaded'); // Debug log
 
 export default ProjectList;
