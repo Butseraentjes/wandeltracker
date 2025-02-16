@@ -19,12 +19,60 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
 
+// 🔹 Helper functies voor UI updates
+function updateUIForLoggedInUser(user) {
+    console.log("Updating UI for logged in user:", user.displayName);
+    
+    const loginContainer = document.getElementById("login-container");
+    const mainContent = document.getElementById("main-content");
+    const userInfo = document.getElementById("user-info");
+
+    if (loginContainer && mainContent && userInfo) {
+        loginContainer.classList.add("hidden");
+        loginContainer.classList.remove("visible");
+        
+        mainContent.classList.add("visible");
+        mainContent.classList.remove("hidden");
+        
+        userInfo.innerText = "Ingelogd als: " + user.displayName;
+        console.log("UI updated for logged in user");
+    } else {
+        console.error("Some elements not found:", {
+            loginContainer: !!loginContainer,
+            mainContent: !!mainContent,
+            userInfo: !!userInfo
+        });
+    }
+}
+
+function updateUIForLoggedOutUser() {
+    console.log("Updating UI for logged out user");
+    
+    const loginContainer = document.getElementById("login-container");
+    const mainContent = document.getElementById("main-content");
+    
+    if (loginContainer && mainContent) {
+        loginContainer.classList.add("visible");
+        loginContainer.classList.remove("hidden");
+        
+        mainContent.classList.add("hidden");
+        mainContent.classList.remove("visible");
+        console.log("UI updated for logged out user");
+    } else {
+        console.error("Some elements not found:", {
+            loginContainer: !!loginContainer,
+            mainContent: !!mainContent
+        });
+    }
+}
+
 // 🔹 Google Login functie
-document.getElementById("google-login-btn").addEventListener("click", async () => {
+document.getElementById("google-login-btn")?.addEventListener("click", async () => {
     try {
+        console.log("Starting Google login process");
         const result = await signInWithPopup(auth, provider);
         const user = result.user;
-        console.log("Ingelogd als:", user.displayName);
+        console.log("Successfully logged in as:", user.displayName);
         
         // Gebruiker opslaan in Firestore
         await setDoc(doc(db, "users", user.uid), {
@@ -34,15 +82,16 @@ document.getElementById("google-login-btn").addEventListener("click", async () =
             createdAt: serverTimestamp()
         }, { merge: true });
         
-        console.log("Gebruiker opgeslagen in database");
+        console.log("User saved to database");
+        updateUIForLoggedInUser(user);
     } catch (error) {
-        console.error("Fout bij Google login:", error.message);
+        console.error("Error during Google login:", error);
         
         if (error.code === "auth/popup-blocked" || error.code === "auth/unauthorized-domain") {
             try {
                 await signInWithRedirect(auth, provider);
             } catch (redirectError) {
-                console.error("Fout bij redirect login:", redirectError.message);
+                console.error("Error during redirect login:", redirectError);
                 alert("Fout bij inloggen. Probeer het opnieuw.");
             }
         } else {
@@ -52,41 +101,49 @@ document.getElementById("google-login-btn").addEventListener("click", async () =
 });
 
 // 🔹 Uitloggen functie
-document.getElementById("logout-btn").addEventListener("click", async () => {
+document.getElementById("logout-btn")?.addEventListener("click", async () => {
     try {
+        console.log("Starting logout process");
         await signOut(auth);
-        console.log("Succesvol uitgelogd");
-        window.location.reload();
+        console.log("Successfully logged out");
+        updateUIForLoggedOutUser();
     } catch (error) {
-        console.error("Fout bij uitloggen:", error.message);
+        console.error("Error during logout:", error);
         alert("Fout bij uitloggen: " + error.message);
     }
 });
 
-// 🔹 Controleer login status
+// 🔹 Auth state observer
 onAuthStateChanged(auth, async (user) => {
+    console.log("Auth state changed:", user ? "logged in" : "logged out");
+    
     if (user) {
         // Gebruiker is ingelogd
-        document.getElementById("login-container").style.display = "none";
-        document.getElementById("main-content").style.display = "block";
-        document.getElementById("user-info").innerText = "Ingelogd als: " + user.displayName;
+        console.log("User is logged in:", user.displayName);
+        updateUIForLoggedInUser(user);
         
         // Controleer/maak gebruikersprofiel
-        const docRef = doc(db, "users", user.uid);
-        const docSnap = await getDoc(docRef);
-        
-        if (!docSnap.exists()) {
-            await setDoc(docRef, {
-                email: user.email,
-                displayName: user.displayName,
-                history: {},
-                createdAt: serverTimestamp()
-            });
+        try {
+            const docRef = doc(db, "users", user.uid);
+            const docSnap = await getDoc(docRef);
+            
+            if (!docSnap.exists()) {
+                console.log("Creating new user profile");
+                await setDoc(docRef, {
+                    email: user.email,
+                    displayName: user.displayName,
+                    history: {},
+                    createdAt: serverTimestamp()
+                });
+                console.log("User profile created");
+            }
+        } catch (error) {
+            console.error("Error checking/creating user profile:", error);
         }
     } else {
         // Gebruiker is niet ingelogd
-        document.getElementById("login-container").style.display = "block";
-        document.getElementById("main-content").style.display = "none";
+        console.log("No user logged in");
+        updateUIForLoggedOutUser();
     }
 });
 
@@ -97,12 +154,14 @@ const closeBtn = document.querySelector(".close");
 const cancelBtn = document.getElementById("cancel-project");
 const projectForm = document.getElementById("new-project-form");
 
-// 🔹 Modal openen/sluiten
+// 🔹 Modal functies
 newProjectBtn?.addEventListener("click", () => {
+    console.log("Opening new project modal");
     modal.style.display = "block";
 });
 
 const closeModal = () => {
+    console.log("Closing modal");
     modal.style.display = "none";
     projectForm.reset();
 };
@@ -116,6 +175,7 @@ window.addEventListener("click", (e) => {
 // 🔹 Project aanmaken
 projectForm?.addEventListener("submit", async (e) => {
     e.preventDefault();
+    console.log("Starting new project creation");
 
     const projectName = document.getElementById("project-name").value;
     const address = document.getElementById("address").value;
@@ -125,7 +185,7 @@ projectForm?.addEventListener("submit", async (e) => {
         const user = auth.currentUser;
         if (!user) throw new Error("Niet ingelogd");
 
-        // Eerst het adres omzetten naar coördinaten via OpenStreetMap
+        console.log("Converting address to coordinates");
         const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`);
         const data = await response.json();
 
@@ -135,6 +195,7 @@ projectForm?.addEventListener("submit", async (e) => {
 
         const latitude = parseFloat(data[0].lat);
         const longitude = parseFloat(data[0].lon);
+        console.log("Coordinates found:", { latitude, longitude });
 
         // Project toevoegen aan Firestore
         const projectRef = await addDoc(collection(db, "projects"), {
@@ -150,11 +211,11 @@ projectForm?.addEventListener("submit", async (e) => {
             totalDistance: 0
         });
 
+        console.log("Project created successfully:", projectRef.id);
         alert("Project succesvol aangemaakt!");
         closeModal();
 
     } catch (error) {
-        console.error("Fout bij aanmaken project:", error);
+        console.error("Error creating project:", error);
         alert(error.message);
     }
-});
