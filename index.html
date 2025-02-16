@@ -45,6 +45,52 @@
     <!-- Main Content -->
     <div id="main-content" class="container hidden">
         <!-- Dynamic content will be inserted here -->
+
+<!-- Voeg dit toe binnen je main-content div in index.html -->
+<div class="dashboard">
+    <div class="dashboard-header">
+        <h2>Mijn Projecten</h2>
+        <button id="new-project-btn" class="primary-btn">
+            + Nieuw Project
+        </button>
+    </div>
+    <div id="projects-list">
+        <!-- Hier komen de projecten -->
+        <p class="no-projects-message">Je hebt nog geen projecten. Maak een nieuw project aan om te beginnen!</p>
+    </div>
+</div>
+
+<!-- Project Modal -->
+<div id="project-modal" class="modal hidden">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Nieuw Project</h3>
+            <button class="close-modal">&times;</button>
+        </div>
+        <form id="project-form">
+            <div class="form-group">
+                <label for="project-name">Projectnaam</label>
+                <input type="text" id="project-name" required>
+            </div>
+            <div class="form-group">
+                <label for="project-location">Startlocatie</label>
+                <input type="text" id="project-street" placeholder="Straat" required>
+                <input type="text" id="project-number" placeholder="Nummer" required>
+                <input type="text" id="project-postal" placeholder="Postcode" required>
+                <input type="text" id="project-city" placeholder="Gemeente" required>
+            </div>
+            <div class="form-group">
+                <label for="project-description">Beschrijving (optioneel)</label>
+                <textarea id="project-description"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="secondary-btn" id="cancel-project">Annuleren</button>
+                <button type="submit" class="primary-btn">Project Aanmaken</button>
+            </div>
+        </form>
+    </div>
+</div>
+        
     </div>
 
     <!-- Footer -->
