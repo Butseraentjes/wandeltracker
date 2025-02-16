@@ -5,21 +5,43 @@ import ProjectList from './components/ProjectList.js';
 // Home View
 class HomeView extends View {
     async render() {
-        const container = document.getElementById('projects-list');
-        // Clear existing content
-        container.innerHTML = '';
-        
-        // Mount React component
-        const root = ReactDOM.createRoot(container);
-        root.render(React.createElement(ProjectList));
-        
-        return '';
+        try {
+            console.log('HomeView render start'); // Debug log
+            
+            const container = document.getElementById('projects-list');
+            if (!container) {
+                throw new Error('Projects list container not found');
+            }
+
+            // Clear existing content
+            container.innerHTML = '';
+            
+            // Mount React component
+            const root = ReactDOM.createRoot(container);
+            root.render(React.createElement(ProjectList));
+            
+            console.log('HomeView render complete'); // Debug log
+            return '';
+        } catch (error) {
+            console.error('Error in HomeView render:', error);
+            throw error;
+        }
     }
 
     async cleanup() {
-        const container = document.getElementById('projects-list');
-        const root = ReactDOM.createRoot(container);
-        root.unmount();
+        try {
+            console.log('HomeView cleanup start'); // Debug log
+            
+            const container = document.getElementById('projects-list');
+            if (container) {
+                const root = ReactDOM.createRoot(container);
+                root.unmount();
+            }
+            
+            console.log('HomeView cleanup complete'); // Debug log
+        } catch (error) {
+            console.error('Error in HomeView cleanup:', error);
+        }
     }
 }
 
