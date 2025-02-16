@@ -1,46 +1,60 @@
 import { Router, View } from './lib/router.js';
 import { initializeAuth, loginWithGoogle, logout, createProject } from './lib/firebase.js';
-import ProjectList from './components/ProjectList.js';
 
 // Home View
 class HomeView extends View {
     async render() {
-        try {
-            console.log('HomeView render start'); // Debug log
-            
-            const container = document.getElementById('projects-list');
-            if (!container) {
-                throw new Error('Projects list container not found');
-            }
+        console.log('HomeView render start');
+        
+        const mainContent = `
+            <div class="dashboard">
+                <div class="dashboard-header">
+                    <h2>Mijn Projecten</h2>
+                    <button id="new-project-btn" class="primary-btn">
+                        + Nieuw Project
+                    </button>
+                </div>
+                <div id="projects-list">
+                    <!-- ProjectList wordt hier gemount -->
+                </div>
+            </div>
+        `;
 
-            // Clear existing content
-            container.innerHTML = '';
+        // Render de basis HTML
+        document.getElementById('main-content').innerHTML = mainContent;
+
+        try {
+            // Dynamisch importeren van de ProjectList component
+            const { default: ProjectList } = await import('./components/ProjectList.js');
             
-            // Mount React component
+            // Mount de React component
+            const container = document.getElementById('projects-list');
             const root = ReactDOM.createRoot(container);
             root.render(React.createElement(ProjectList));
             
-            console.log('HomeView render complete'); // Debug log
-            return '';
+            // Event listener voor nieuwe project knop
+            document.getElementById('new-project-btn')?.addEventListener('click', showModal);
+            
+            console.log('HomeView render complete');
         } catch (error) {
-            console.error('Error in HomeView render:', error);
-            throw error;
+            console.error('Error rendering ProjectList:', error);
+            document.getElementById('projects-list').innerHTML = 
+                '<div class="error">Er is iets misgegaan bij het laden van de projecten.</div>';
         }
+
+        return '';
     }
 
     async cleanup() {
+        console.log('HomeView cleanup start');
         try {
-            console.log('HomeView cleanup start'); // Debug log
-            
             const container = document.getElementById('projects-list');
             if (container) {
                 const root = ReactDOM.createRoot(container);
                 root.unmount();
             }
-            
-            console.log('HomeView cleanup complete'); // Debug log
         } catch (error) {
-            console.error('Error in HomeView cleanup:', error);
+            console.error('Error in cleanup:', error);
         }
     }
 }
@@ -126,24 +140,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // New Project button
-    const newProjectBtn = document.getElementById('new-project-btn');
-    if (newProjectBtn) {
-        newProjectBtn.addEventListener('click', showModal);
-    }
-
-    // Close modal button
-    const closeModalBtn = document.querySelector('.close-modal');
-    if (closeModalBtn) {
-        closeModalBtn.addEventListener('click', hideModal);
-    }
-
-    // Cancel project button
-    const cancelProjectBtn = document.getElementById('cancel-project');
-    if (cancelProjectBtn) {
-        cancelProjectBtn.addEventListener('click', hideModal);
-    }
-
     // Project form submission
     const projectForm = document.getElementById('project-form');
     if (projectForm) {
@@ -161,8 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         postalCode: document.getElementById('project-postal').value,
                         city: document.getElementById('project-city').value
                     },
-                    description: document.getElementById('project-description').value,
-                    createdAt: new Date()
+                    description: document.getElementById('project-description').value
                 };
 
                 await createProject(projectData);
@@ -178,15 +173,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Click outside modal to close
-    const modal = document.getElementById('project-modal');
-    if (modal) {
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                hideModal();
-            }
-        });
-    }
+    // Modal close handlers
+    document.querySelector('.close-modal')?.addEventListener('click', hideModal);
+    document.getElementById('cancel-project')?.addEventListener('click', hideModal);
+    document.getElementById('project-modal')?.addEventListener('click', (e) => {
+        if (e.target === e.currentTarget) hideModal();
+    });
 });
 
 // Initialize auth state observer
