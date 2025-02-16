@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WandelTracker</title>
+    <title>WandelTracker - Login</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -22,7 +22,7 @@
         h1 {
             color: #007bff;
         }
-        input, select, button {
+        input, button {
             width: 100%;
             padding: 10px;
             margin: 8px 0;
@@ -39,52 +39,31 @@
         button:hover {
             background-color: #0056b3;
         }
-        .output {
-            margin-top: 10px;
-            font-weight: bold;
+        #main-content {
+            display: none; /* Verberg alles tot iemand is ingelogd */
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
+    <div class="container" id="login-container">
         <h1>WandelTracker</h1>
-        <p>Registreer of log in om je wandelingen bij te houden.</p>
-
+        <p>Log in om verder te gaan.</p>
         <input type="email" id="email" placeholder="E-mail">
         <input type="password" id="password" placeholder="Wachtwoord">
-        <button id="register-btn">Registreren</button>
         <button id="login-btn">Inloggen</button>
+        <button id="register-btn">Registreren</button>
+        <p id="auth-message"></p>
     </div>
 
-    <div class="container">
-        <h2>Startlocatie instellen</h2>
-        <input type="text" id="latitude" placeholder="Latitude">
-        <input type="text" id="longitude" placeholder="Longitude">
-        <button id="save-start-btn">Opslaan</button>
-    </div>
-
-    <div class="container">
-        <h2>Wandeling registreren</h2>
-        <input type="date" id="date">
-        <input type="number" id="distance" placeholder="Aantal km">
-        <select id="direction">
-            <option value="noord">Noord</option>
-            <option value="oost">Oost</option>
-            <option value="zuid">Zuid</option>
-            <option value="west">West</option>
-        </select>
-        <button id="save-walk-btn">Opslaan</button>
-    </div>
-
-    <div class="container">
-        <h2>Wandeldata ophalen</h2>
-        <input type="date" id="fetch-date">
-        <button id="fetch-walk-btn">Haal data op</button>
-        <p class="output" id="walk-data-output"></p>
+    <div id="main-content">
+        <div class="container">
+            <h2>Welkom bij WandelTracker</h2>
+            <p id="user-info"></p>
+            <button id="logout-btn">Uitloggen</button>
+        </div>
     </div>
 
     <script type="module" src="firebase.js"></script>
 </body>
 </html>
-
