@@ -59,7 +59,37 @@
             <button id="logout-btn" class="secondary-btn">Uitloggen</button>
         </div>
     </div>
-
+<!-- Project Modal -->
+<div id="new-project-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Nieuw Wandelproject</h2>
+            <span class="close">&times;</span>
+        </div>
+        <form id="new-project-form">
+            <div class="form-group">
+                <label for="project-name">Projectnaam:</label>
+                <input type="text" id="project-name" required placeholder="Bijv. Wandelen 2025">
+            </div>
+            <div class="form-group">
+                <label for="start-location">Start Locatie:</label>
+                <div class="location-inputs">
+                    <input type="number" id="latitude" step="any" required placeholder="Breedtegraad (bijv. 51.123)">
+                    <input type="number" id="longitude" step="any" required placeholder="Lengtegraad (bijv. 4.456)">
+                    <button type="button" id="get-location" class="secondary-btn">Gebruik huidige locatie</button>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="project-description">Beschrijving (optioneel):</label>
+                <textarea id="project-description" rows="3" placeholder="Beschrijf je wandeldoel..."></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="secondary-btn" id="cancel-project">Annuleren</button>
+                <button type="submit" class="primary-btn">Project Aanmaken</button>
+            </div>
+        </form>
+    </div>
+</div>
     <!-- Footer -->
     <footer>
         <p>&copy; 2025 WandelTracker - Volg je wandelavontuur</p>
