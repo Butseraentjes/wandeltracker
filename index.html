@@ -3,28 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>WandelTracker</title>
-    <link rel="icon" type="image/png" href="favicon.png">
-    <link rel="stylesheet" href="styles.css">
-    <!-- Voeg Meta Description toe voor SEO -->
-    <meta name="description" content="WandelTracker - Houd je wandelingen bij en zie hoever je al gekomen bent!">
-    <!-- Voorkom caching tijdens ontwikkeling -->
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
+    <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-    <!-- Loading Spinner -->
+    <!-- Loading Indicator -->
     <div id="loading-spinner" class="loading-spinner hidden">
         <div class="spinner"></div>
-        <p>Even geduld...</p>
     </div>
 
     <!-- Header -->
     <header>
         <div class="header-container">
             <h1>WandelTracker</h1>
+            <nav id="main-nav" class="main-nav hidden">
+                <a href="/" data-route="/">Projecten</a>
+                <a href="/settings" data-route="/settings">Instellingen</a>
+            </nav>
             <div class="header-right">
                 <p id="user-info"></p>
                 <button id="logout-btn" class="secondary-btn hidden">Uitloggen</button>
@@ -32,141 +27,31 @@
         </div>
     </header>
 
-    <!-- Error Message Container -->
-    <div id="error-container" class="error-container hidden">
-        <p id="error-message"></p>
-        <button class="close-error">×</button>
-    </div>
-
     <!-- Login Container -->
     <div id="login-container" class="container">
         <div class="login-box">
             <h2>Welkom bij WandelTracker</h2>
             <p>Houd je wandelingen bij en zie hoever je al gekomen bent!</p>
             <button id="google-login-btn" class="google-btn">
-                <img src="google-logo.svg" alt="Google Logo" class="google-logo">
+                <img src="assets/google-logo.svg" alt="Google Logo">
                 Inloggen met Google
             </button>
         </div>
     </div>
 
-    <!-- Main Content (Dashboard) -->
+    <!-- Main Content -->
     <div id="main-content" class="container hidden">
-        <div class="dashboard">
-            <div class="dashboard-header">
-                <h2>Mijn Projecten</h2>
-                <div class="dashboard-actions">
-                    <button id="new-project-btn" class="primary-btn">
-                        <span class="icon">+</span> Nieuw Project
-                    </button>
-                </div>
-            </div>
-
-            <!-- Statistieken Overview -->
-            <div class="stats-overview">
-                <div class="stat-card">
-                    <h3>Totale Afstand</h3>
-                    <p id="total-distance">0 km</p>
-                </div>
-                <div class="stat-card">
-                    <h3>Actieve Projecten</h3>
-                    <p id="active-projects">0</p>
-                </div>
-                <div class="stat-card">
-                    <h3>Laatste Activiteit</h3>
-                    <p id="last-activity">Geen activiteit</p>
-                </div>
-            </div>
-
-            <!-- Feature Cards -->
-            <div class="feature-grid">
-                <div class="feature-card">
-                    <div class="icon">📍</div>
-                    <h3>Start Locatie</h3>
-                    <p>Stel je startpunt in om je wandelafstand te meten</p>
-                </div>
-                <div class="feature-card">
-                    <div class="icon">📅</div>
-                    <h3>Dagelijks Bijhouden</h3>
-                    <p>Voer eenvoudig je dagelijkse wandelingen in</p>
-                </div>
-                <div class="feature-card">
-                    <div class="icon">🎯</div>
-                    <h3>Volg Je Voortgang</h3>
-                    <p>Bekijk hoever je al gewandeld hebt vanaf je startpunt</p>
-                </div>
-            </div>
-
-            <!-- Projects List -->
-            <div id="projects-list" class="projects-container">
-                <!-- Projects worden hier dynamisch toegevoegd -->
-                <div id="no-projects-message" class="no-projects hidden">
-                    <p>Je hebt nog geen projecten. Maak een nieuw project aan om te beginnen!</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- New Project Modal -->
-    <div id="new-project-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Nieuw Wandelproject</h2>
-                <span class="close">&times;</span>
-            </div>
-            <form id="new-project-form">
-                <div class="form-group">
-                    <label for="project-name">Projectnaam: *</label>
-                    <input type="text" id="project-name" required 
-                           placeholder="Bijv. Wandelen 2025"
-                           maxlength="50">
-                    <small class="help-text">Maximaal 50 tekens</small>
-                </div>
-                <div class="form-group">
-                    <label for="address">Start Locatie: *</label>
-                    <input type="text" id="address" required 
-                           placeholder="Voer een adres in"
-                           maxlength="100">
-                    <small class="help-text">Maximaal 100 tekens</small>
-                </div>
-                <div class="form-group">
-                    <label for="project-description">Beschrijving:</label>
-                    <textarea id="project-description" rows="3" 
-                              placeholder="Beschrijf je wandeldoel..."
-                              maxlength="500"></textarea>
-                    <small class="help-text">Maximaal 500 tekens</small>
-                </div>
-                <div class="form-group">
-                    <label for="daily-goal">Dagelijks Doel (km):</label>
-                    <input type="number" id="daily-goal" 
-                           min="0" max="100" step="0.1"
-                           placeholder="Bijv. 5">
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="secondary-btn" id="cancel-project">
-                        Annuleren
-                    </button>
-                    <button type="submit" class="primary-btn">
-                        Project Aanmaken
-                    </button>
-                </div>
-            </form>
-        </div>
+        <!-- Dynamic content will be inserted here -->
     </div>
 
     <!-- Footer -->
     <footer>
         <div class="footer-content">
-            <p>&copy; 2025 WandelTracker - Volg je wandelavontuur</p>
-            <nav class="footer-nav">
-                <a href="#" id="privacy-link">Privacy</a>
-                <a href="#" id="terms-link">Voorwaarden</a>
-                <a href="#" id="contact-link">Contact</a>
-            </nav>
+            <p>&copy; 2025 WandelTracker</p>
         </div>
     </footer>
 
-    <!-- Load Firebase Scripts -->
-    <script type="module" src="firebase.js"></script>
+    <!-- Scripts -->
+    <script type="module" src="js/app.js"></script>
 </body>
 </html>
