@@ -22,7 +22,6 @@ const provider = new GoogleAuthProvider();
 // 🔹 Google Login functie
 document.getElementById("google-login-btn").addEventListener("click", async () => {
     try {
-        // Eerst proberen met popup
         const result = await signInWithPopup(auth, provider);
         const user = result.user;
         console.log("Ingelogd als:", user.displayName);
@@ -31,21 +30,20 @@ document.getElementById("google-login-btn").addEventListener("click", async () =
         await setDoc(doc(db, "users", user.uid), {
             email: user.email,
             displayName: user.displayName,
-            startLocation: null,
-            history: {}
+            history: {},
+            createdAt: serverTimestamp()
         }, { merge: true });
         
-        alert("Succesvol ingelogd als: " + user.displayName);
+        console.log("Gebruiker opgeslagen in database");
     } catch (error) {
         console.error("Fout bij Google login:", error.message);
         
-        // Als popup mislukt, probeer redirect
         if (error.code === "auth/popup-blocked" || error.code === "auth/unauthorized-domain") {
             try {
                 await signInWithRedirect(auth, provider);
             } catch (redirectError) {
                 console.error("Fout bij redirect login:", redirectError.message);
-                alert("Fout bij inloggen. Probeer het opnieuw of controleer of je het juiste domein gebruikt.");
+                alert("Fout bij inloggen. Probeer het opnieuw.");
             }
         } else {
             alert("Fout bij inloggen: " + error.message);
@@ -78,12 +76,11 @@ onAuthStateChanged(auth, async (user) => {
         const docSnap = await getDoc(docRef);
         
         if (!docSnap.exists()) {
-            // Nieuw gebruikersprofiel aanmaken
             await setDoc(docRef, {
                 email: user.email,
                 displayName: user.displayName,
-                startLocation: null,
-                history: {}
+                history: {},
+                createdAt: serverTimestamp()
             });
         }
     } else {
@@ -99,78 +96,65 @@ const newProjectBtn = document.getElementById("new-project-btn");
 const closeBtn = document.querySelector(".close");
 const cancelBtn = document.getElementById("cancel-project");
 const projectForm = document.getElementById("new-project-form");
-const getLocationBtn = document.getElementById("get-location");
 
-// 🔹 Modal openen
-newProjectBtn.addEventListener("click", () => {
+// 🔹 Modal openen/sluiten
+newProjectBtn?.addEventListener("click", () => {
     modal.style.display = "block";
 });
 
-// 🔹 Modal sluiten (via X of Annuleren)
 const closeModal = () => {
     modal.style.display = "none";
     projectForm.reset();
 };
 
-closeBtn.addEventListener("click", closeModal);
-cancelBtn.addEventListener("click", closeModal);
+closeBtn?.addEventListener("click", closeModal);
+cancelBtn?.addEventListener("click", closeModal);
 window.addEventListener("click", (e) => {
     if (e.target === modal) closeModal();
 });
 
-// 🔹 Huidige locatie ophalen
-getLocationBtn.addEventListener("click", () => {
-    if (navigator.geolocation) {
-        getLocationBtn.textContent = "Locatie ophalen...";
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                document.getElementById("latitude").value = position.coords.latitude;
-                document.getElementById("longitude").value = position.coords.longitude;
-                getLocationBtn.textContent = "Gebruik huidige locatie";
-            },
-            (error) => {
-                console.error("Fout bij ophalen locatie:", error);
-                alert("Kon de locatie niet ophalen. Controleer of je locatietoegang hebt gegeven.");
-                getLocationBtn.textContent = "Gebruik huidige locatie";
-            }
-        );
-    } else {
-        alert("Geolocatie wordt niet ondersteund door je browser.");
-    }
-});
-
 // 🔹 Project aanmaken
-projectForm.addEventListener("submit", async (e) => {
+projectForm?.addEventListener("submit", async (e) => {
     e.preventDefault();
 
     const projectName = document.getElementById("project-name").value;
-    const latitude = parseFloat(document.getElementById("latitude").value);
-    const longitude = parseFloat(document.getElementById("longitude").value);
+    const address = document.getElementById("address").value;
     const description = document.getElementById("project-description").value;
 
     try {
         const user = auth.currentUser;
         if (!user) throw new Error("Niet ingelogd");
 
-        // Nieuw project toevoegen aan Firestore
+        // Eerst het adres omzetten naar coördinaten via OpenStreetMap
+        const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`);
+        const data = await response.json();
+
+        if (data.length === 0) {
+            throw new Error("Kon het adres niet vinden. Controleer of het correct is ingevoerd.");
+        }
+
+        const latitude = parseFloat(data[0].lat);
+        const longitude = parseFloat(data[0].lon);
+
+        // Project toevoegen aan Firestore
         const projectRef = await addDoc(collection(db, "projects"), {
-            userId: user.uid,
             name: projectName,
-            startLocation: { latitude, longitude },
+            userId: user.uid,
             description: description,
             createdAt: serverTimestamp(),
-            totalDistance: 0,
-            history: {}
+            startLocation: {
+                address: address,
+                latitude: latitude,
+                longitude: longitude
+            },
+            totalDistance: 0
         });
 
         alert("Project succesvol aangemaakt!");
         closeModal();
-        
-        // TODO: Project toevoegen aan de UI
-        // Hier kunnen we later code toevoegen om het project direct in de UI te tonen
 
     } catch (error) {
         console.error("Fout bij aanmaken project:", error);
-        alert("Er ging iets mis bij het aanmaken van het project. Probeer het opnieuw.");
+        alert(error.message);
     }
 });
