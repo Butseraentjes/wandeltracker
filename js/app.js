@@ -1,12 +1,25 @@
 import { Router, View } from './lib/router.js';
 import { initializeAuth, loginWithGoogle, logout, createProject } from './lib/firebase.js';
+import ProjectList from './components/ProjectList.js';
 
 // Home View
 class HomeView extends View {
     async render() {
-        // We gebruiken de bestaande HTML structuur
-        // Deze methode wordt niet meer gebruikt maar moet wel bestaan voor de router
+        const container = document.getElementById('projects-list');
+        // Clear existing content
+        container.innerHTML = '';
+        
+        // Mount React component
+        const root = ReactDOM.createRoot(container);
+        root.render(React.createElement(ProjectList));
+        
         return '';
+    }
+
+    async cleanup() {
+        const container = document.getElementById('projects-list');
+        const root = ReactDOM.createRoot(container);
+        root.unmount();
     }
 }
 
@@ -57,39 +70,6 @@ function hideModal() {
     document.getElementById('project-form').reset();
 }
 
-// UI State Management
-function updateUIForLoggedInUser(user) {
-    const loginContainer = document.getElementById('login-container');
-    const mainContent = document.getElementById('main-content');
-    const mainNav = document.getElementById('main-nav');
-    const logoutBtn = document.getElementById('logout-btn');
-    const userInfo = document.getElementById('user-info');
-
-    // Verberg login, toon main content
-    loginContainer.classList.add('hidden');
-    mainContent.classList.remove('hidden');
-    mainNav.classList.remove('hidden');
-    logoutBtn.classList.remove('hidden');
-    
-    // Update gebruikersinfo
-    userInfo.textContent = user.email;
-}
-
-function updateUIForLoggedOutUser() {
-    const loginContainer = document.getElementById('login-container');
-    const mainContent = document.getElementById('main-content');
-    const mainNav = document.getElementById('main-nav');
-    const logoutBtn = document.getElementById('logout-btn');
-    const userInfo = document.getElementById('user-info');
-
-    // Toon login, verberg main content
-    loginContainer.classList.remove('hidden');
-    mainContent.classList.add('hidden');
-    mainNav.classList.add('hidden');
-    logoutBtn.classList.add('hidden');
-    userInfo.textContent = '';
-}
-
 // Setup event listeners
 document.addEventListener('DOMContentLoaded', () => {
     // Login button
@@ -99,7 +79,6 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 document.getElementById('loading-spinner').classList.remove('hidden');
                 const user = await loginWithGoogle();
-                updateUIForLoggedInUser(user);
             } catch (error) {
                 console.error('Login failed:', error);
                 alert('Inloggen mislukt. Probeer het opnieuw.');
@@ -116,7 +95,6 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 document.getElementById('loading-spinner').classList.remove('hidden');
                 await logout();
-                updateUIForLoggedOutUser();
             } catch (error) {
                 console.error('Logout failed:', error);
                 alert('Uitloggen mislukt. Probeer het opnieuw.');
@@ -168,7 +146,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 await createProject(projectData);
                 hideModal();
                 alert('Project succesvol aangemaakt!');
-                // Later zullen we hier de projectenlijst verversen
                 
             } catch (error) {
                 console.error('Error creating project:', error);
@@ -195,13 +172,11 @@ initializeAuth(
     // Login callback
     (user) => {
         console.log('User logged in:', user.email);
-        updateUIForLoggedInUser(user);
         router.start();
     },
     // Logout callback
     () => {
         console.log('User logged out');
-        updateUIForLoggedOutUser();
         router.navigate('/');
     }
 );
