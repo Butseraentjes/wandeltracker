@@ -43,7 +43,7 @@ const ProjectList = () => {
         window.dispatchEvent(new PopStateEvent('popstate'));
     };
 
-    const renderedContent = React.useMemo(() => {
+const renderedContent = React.useMemo(() => {
         if (loading) {
             return React.createElement('div', { className: 'text-center p-4' },
                 'Projecten laden...'
@@ -74,31 +74,48 @@ const ProjectList = () => {
                             new Date(project.createdAt).toLocaleDateString())
                         : 'Onbekende datum';
 
+                    const projectElements = [
+                        React.createElement('h3', 
+                            { 
+                                key: 'title',
+                                className: 'text-lg font-semibold mb-2 text-blue-600' 
+                            },
+                            project.name || 'Naamloos project'
+                        ),
+                        React.createElement('p',
+                            { 
+                                key: 'location',
+                                className: 'text-gray-600 text-sm mb-2' 
+                            },
+                            `${location.street || ''} ${location.number || ''}, ${location.postalCode || ''} ${location.city || ''}`
+                        ),
+                        React.createElement('div',
+                            { 
+                                key: 'date',
+                                className: 'text-sm text-gray-500' 
+                            },
+                            `Aangemaakt op: ${createdAt}`
+                        )
+                    ];
+
+                    if (project.description) {
+                        projectElements.splice(2, 0, React.createElement('p',
+                            { 
+                                key: 'description',
+                                className: 'text-gray-700 mb-4' 
+                            },
+                            project.description
+                        ));
+                    }
+
                     return React.createElement(
                         'div',
                         {
-                            key: project.id,
+                            key: project.id || Math.random(),
                             onClick: () => handleProjectClick(project.id),
                             className: 'bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow cursor-pointer hover:bg-gray-50'
                         },
-                        [
-                            React.createElement('h3', 
-                                { className: 'text-lg font-semibold mb-2 text-blue-600' },
-                                project.name || 'Naamloos project'
-                            ),
-                            React.createElement('p',
-                                { className: 'text-gray-600 text-sm mb-2' },
-                                `${location.street || ''} ${location.number || ''}, ${location.postalCode || ''} ${location.city || ''}`
-                            ),
-                            project.description && React.createElement('p',
-                                { className: 'text-gray-700 mb-4' },
-                                project.description
-                            ),
-                            React.createElement('div',
-                                { className: 'text-sm text-gray-500' },
-                                `Aangemaakt op: ${createdAt}`
-                            )
-                        ]
+                        projectElements
                     );
                 } catch (err) {
                     console.error('Error rendering project:', err, project);
