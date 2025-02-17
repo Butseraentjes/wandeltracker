@@ -4,17 +4,16 @@ import { View } from '../lib/router.js';
 export class ProjectDetailView extends View {
     constructor() {
         super();
-        this.projectId = null;
+        this.unsubscribe = null;
     }
 
     async render() {
         console.log('ProjectDetailView render start');
         
-        // Haal project ID uit de URL
-        const path = window.location.pathname;
-        this.projectId = path.split('/project/')[1];
+        // Gebruik project ID uit route parameters
+        const projectId = this.params.id;
         
-        if (!this.projectId) {
+        if (!projectId) {
             return `
                 <div class="error-container">
                     <h2>Project niet gevonden</h2>
@@ -45,7 +44,7 @@ export class ProjectDetailView extends View {
             `;
 
             // Project data ophalen en weergeven
-            const unsubscribe = subscribeToProject(this.projectId, (project) => {
+            this.unsubscribe = subscribeToProject(projectId, (project) => {
                 if (!project) {
                     mainContent.innerHTML = `
                         <div class="error-container">
@@ -76,11 +75,6 @@ export class ProjectDetailView extends View {
                 }
             });
 
-            // Cleanup functie retourneren
-            this.cleanup = () => {
-                if (unsubscribe) unsubscribe();
-            };
-
         } catch (error) {
             console.error('Error in ProjectDetailView:', error);
             return `
@@ -92,5 +86,11 @@ export class ProjectDetailView extends View {
         }
 
         return '';
+    }
+
+    async cleanup() {
+        if (this.unsubscribe) {
+            this.unsubscribe();
+        }
     }
 }
