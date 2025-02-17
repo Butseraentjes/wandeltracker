@@ -5,12 +5,12 @@ export class ProjectDetailView extends View {
     constructor() {
         super();
         this.unsubscribe = null;
+        this.calendar = null;
     }
 
     async render() {
         console.log('ProjectDetailView render start');
         
-        // Gebruik project ID uit route parameters
         const projectId = this.params.id;
         
         if (!projectId) {
@@ -23,20 +23,24 @@ export class ProjectDetailView extends View {
         }
 
         try {
-            // Haal project data op
             const mainContent = document.getElementById('main-content');
             mainContent.innerHTML = `
-                <div class="project-detail">
-                    <div class="project-header">
+                <div class="project-detail p-4">
+                    <div class="project-header mb-6">
                         <h2>Project wordt geladen...</h2>
                     </div>
-                    <div class="project-content grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="calendar-section bg-white p-4 rounded-lg shadow">
-                            <h3>Kalender</h3>
-                            <p>Hier komt de kalender...</p>
+                    <div class="project-content grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="calendar-section bg-white p-6 rounded-lg shadow">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-lg font-semibold">Wandelingen</h3>
+                                <button id="add-walk-btn" class="text-blue-600 hover:text-blue-800">
+                                    + Nieuwe wandeling
+                                </button>
+                            </div>
+                            <div id="calendar" class="fc"></div>
                         </div>
-                        <div class="map-section bg-white p-4 rounded-lg shadow">
-                            <h3>Kaart</h3>
+                        <div class="map-section bg-white p-6 rounded-lg shadow">
+                            <h3 class="text-lg font-semibold mb-4">Kaart</h3>
                             <p>Hier komt later de kaart...</p>
                         </div>
                     </div>
@@ -58,7 +62,7 @@ export class ProjectDetailView extends View {
                 const header = document.querySelector('.project-header');
                 if (header) {
                     header.innerHTML = `
-                        <div class="flex justify-between items-center mb-6">
+                        <div class="flex justify-between items-center">
                             <div>
                                 <h2 class="text-2xl font-bold">${project.name}</h2>
                                 <p class="text-gray-600">
@@ -73,6 +77,9 @@ export class ProjectDetailView extends View {
                         </div>
                     `;
                 }
+
+                // Initialiseer kalender
+                this.initializeCalendar(project);
             });
 
         } catch (error) {
@@ -88,9 +95,42 @@ export class ProjectDetailView extends View {
         return '';
     }
 
+    initializeCalendar(project) {
+        const calendarEl = document.getElementById('calendar');
+        if (!calendarEl || this.calendar) return;
+
+        this.calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth'
+            },
+            locale: 'nl',
+            height: 'auto',
+            selectable: true,
+            events: [], // Hier komen later de wandelingen
+            dateClick: (info) => {
+                this.handleDateClick(info, project);
+            }
+        });
+
+        this.calendar.render();
+    }
+
+    handleDateClick(info, project) {
+        // Later implementeren we hier het toevoegen van een wandeling
+        console.log('Clicked on: ' + info.dateStr);
+        alert('Binnenkort kun je hier je wandeling toevoegen!');
+    }
+
     async cleanup() {
         if (this.unsubscribe) {
             this.unsubscribe();
+        }
+        if (this.calendar) {
+            this.calendar.destroy();
+            this.calendar = null;
         }
     }
 }
