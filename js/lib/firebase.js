@@ -206,3 +206,26 @@ export function subscribeToProject(projectId, callback) {
         callback(null);
     });
 }
+
+
+// Voeg toe aan firebase.js
+
+export async function saveWalk(projectId, walkData) {
+    try {
+        const user = auth.currentUser;
+        if (!user) throw new Error("Geen gebruiker ingelogd");
+
+        const walkRef = doc(collection(db, "projects", projectId, "walks"), walkData.date);
+        
+        await setDoc(walkRef, {
+            ...walkData,
+            userId: user.uid,
+            createdAt: serverTimestamp()
+        });
+
+        return walkRef.id;
+    } catch (error) {
+        console.error("Error saving walk:", error);
+        throw error;
+    }
+}
