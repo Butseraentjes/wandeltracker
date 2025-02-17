@@ -183,3 +183,26 @@ export async function getCurrentUser() {
 
 // Exporteer Firebase instances voor gebruik in andere modules
 export { db, auth };
+
+// In firebase.js, voeg deze functie toe:
+
+export function subscribeToProject(projectId, callback) {
+    const user = auth.currentUser;
+    if (!user) return null;
+
+    const projectRef = doc(db, "projects", projectId);
+    
+    return onSnapshot(projectRef, (doc) => {
+        if (doc.exists() && doc.data().userId === user.uid) {
+            callback({
+                id: doc.id,
+                ...doc.data()
+            });
+        } else {
+            callback(null);
+        }
+    }, (error) => {
+        console.error('Error fetching project:', error);
+        callback(null);
+    });
+}
