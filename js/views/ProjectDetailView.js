@@ -1,0 +1,13 @@
+/wandeltracker
+    /js
+        /components
+            ProjectList.js
+        /lib
+            firebase.js
+            router.js
+        /views
+            ProjectDetailView.js
+        app.js
+    /css
+        styles.css
+    index.html
