@@ -236,10 +236,3 @@ router.start();
 
 
 
-// Update de routes configuratie
-const routes = {
-    '/': { view: HomeView },
-    '/settings': { view: SettingsView },
-    '/404': { view: NotFoundView },
-    '/project/:id': { view: ProjectDetailView }  // Nieuwe route
-};
