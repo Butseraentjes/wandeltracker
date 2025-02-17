@@ -16,6 +16,27 @@ export class Router {
         });
     }
 
+    // Check if route matches pattern
+    matchRoute(pattern, path) {
+        // Convert route pattern to regex
+        const paramRegex = /:(\w+)/g;
+        const regex = new RegExp('^' + pattern.replace(paramRegex, '([^/]+)') + '$');
+        const match = path.match(regex);
+
+        if (!match) return null;
+
+        // Extract parameters
+        const params = {};
+        const paramNames = (pattern.match(paramRegex) || [])
+            .map(param => param.slice(1));
+        
+        paramNames.forEach((name, index) => {
+            params[name] = match[index + 1];
+        });
+
+        return params;
+    }
+
     // Route handler
     async handleRoute() {
         if (this.isNavigating) {
@@ -25,20 +46,36 @@ export class Router {
 
         this.isNavigating = true;
         const path = window.location.pathname;
-        const route = this.routes[path] || this.routes['/404'];
+        
+        // Find matching route
+        let matchedRoute = null;
+        let routeParams = {};
+
+        for (const [pattern, route] of Object.entries(this.routes)) {
+            const params = this.matchRoute(pattern, path);
+            if (params !== null) {
+                matchedRoute = route;
+                routeParams = params;
+                break;
+            }
+        }
+
+        // Use 404 route if no match found
+        const route = matchedRoute || this.routes['/404'];
         const mainContent = document.getElementById('main-content');
 
         try {
             // Toon loading spinner
             document.getElementById('loading-spinner').classList.remove('hidden');
 
-            // Clean up vorige view als die bestaat
+            // Clean up vorige view
             if (this.currentView && this.currentView.cleanup) {
                 await this.currentView.cleanup();
             }
 
-            // Initialiseer nieuwe view
+            // Initialiseer nieuwe view met route parameters
             this.currentView = new route.view();
+            this.currentView.params = routeParams;
             
             // Render view content
             const content = await this.currentView.render();
@@ -98,6 +135,7 @@ export class View {
     constructor() {
         this.isInitialized = false;
         this.isDestroyed = false;
+        this.params = {};
     }
 
     // Render method moet worden overschreven door child classes
