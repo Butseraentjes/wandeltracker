@@ -1,7 +1,9 @@
-import { subscribeToProject } from '../lib/firebase.js';
+import { subscribeToProject, saveWalk } from '../lib/firebase.js';
 import { View } from '../lib/router.js';
 
 export class ProjectDetailView extends View {
+    // Rest van de code blijft hetzelfde...
+}
     constructor() {
         super();
         this.unsubscribe = null;
