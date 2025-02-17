@@ -228,3 +228,14 @@ initializeAuth(
 
 // Start router
 router.start();
+
+// Voeg deze import toe bovenaan app.js
+import { ProjectDetailView } from './views/ProjectDetailView.js';
+
+// Update de routes configuratie
+const routes = {
+    '/': { view: HomeView },
+    '/settings': { view: SettingsView },
+    '/404': { view: NotFoundView },
+    '/project/:id': { view: ProjectDetailView }  // Nieuwe route
+};
