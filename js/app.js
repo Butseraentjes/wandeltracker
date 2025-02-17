@@ -118,11 +118,12 @@ class NotFoundView extends View {
     }
 }
 
-// Route configuratie
+// Update de routes configuratie
 const routes = {
     '/': { view: HomeView },
     '/settings': { view: SettingsView },
-    '/404': { view: NotFoundView }
+    '/404': { view: NotFoundView },
+    '/project/:id': { view: ProjectDetailView }  // Nieuwe route
 };
 
 // Initialize Router
