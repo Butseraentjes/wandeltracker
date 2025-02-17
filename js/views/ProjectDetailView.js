@@ -118,11 +118,63 @@ export class ProjectDetailView extends View {
         this.calendar.render();
     }
 
-    handleDateClick(info, project) {
-        // Later implementeren we hier het toevoegen van een wandeling
-        console.log('Clicked on: ' + info.dateStr);
-        alert('Binnenkort kun je hier je wandeling toevoegen!');
-    }
+// Update de handleDateClick functie in ProjectDetailView.js
+
+handleDateClick(info, project) {
+    const modal = document.getElementById('walk-modal');
+    const dateInput = document.getElementById('walk-date');
+    const distanceInput = document.getElementById('walk-distance');
+    const form = document.getElementById('walk-form');
+    const closeBtn = modal.querySelector('.close-modal');
+    const cancelBtn = document.getElementById('cancel-walk');
+
+    // Reset form
+    form.reset();
+    dateInput.value = info.dateStr;
+
+    // Show modal
+    modal.classList.remove('hidden');
+
+    // Handle form submission
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        
+        try {
+            document.getElementById('loading-spinner').classList.remove('hidden');
+            
+            const walkData = {
+                date: dateInput.value,
+                distance: parseFloat(distanceInput.value),
+                projectId: project.id
+            };
+
+            await saveWalk(project.id, walkData);
+            modal.classList.add('hidden');
+            
+            // Hier kunnen we later de kalenderweergave updaten
+            
+        } catch (error) {
+            console.error('Error saving walk:', error);
+            alert('Er is iets misgegaan bij het opslaan van de wandeling. Probeer het opnieuw.');
+        } finally {
+            document.getElementById('loading-spinner').classList.add('hidden');
+        }
+    };
+
+    // Handle close
+    const handleClose = () => {
+        modal.classList.add('hidden');
+        form.removeEventListener('submit', handleSubmit);
+    };
+
+    // Add event listeners
+    form.addEventListener('submit', handleSubmit);
+    closeBtn.addEventListener('click', handleClose);
+    cancelBtn.addEventListener('click', handleClose);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) handleClose();
+    });
+}
 
     async cleanup() {
         if (this.unsubscribe) {
