@@ -108,6 +108,30 @@
     <script src='https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.10/index.global.min.js'></script>
     <script src='https://cdn.jsdelivr.net/npm/@fullcalendar/interaction@6.1.10/index.global.min.js'></script>
     <link href='https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/main.min.css' rel='stylesheet' />
+
+<!-- Voeg dit toe voor de closing body tag -->
+<div id="walk-modal" class="modal hidden">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Wandeling Toevoegen</h3>
+            <button class="close-modal">&times;</button>
+        </div>
+        <form id="walk-form">
+            <div class="form-group">
+                <label for="walk-date">Datum</label>
+                <input type="text" id="walk-date" readonly>
+            </div>
+            <div class="form-group">
+                <label for="walk-distance">Aantal kilometers</label>
+                <input type="number" id="walk-distance" step="0.1" required>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="secondary-btn" id="cancel-walk">Annuleren</button>
+                <button type="submit" class="primary-btn">Opslaan</button>
+            </div>
+        </form>
+    </div>
+</div>
     
 </body>
 </html>
