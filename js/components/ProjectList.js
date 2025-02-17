@@ -1,8 +1,6 @@
 import { subscribeToProjects } from '../lib/firebase.js';
 
 const ProjectList = () => {
-    console.log('ProjectList component initializing...');
-    
     const [projects, setProjects] = React.useState([]);
     const [loading, setLoading] = React.useState(true);
     const [error, setError] = React.useState(null);
@@ -33,7 +31,6 @@ const ProjectList = () => {
         setupSubscription();
 
         return () => {
-            console.log('ProjectList cleanup running...');
             mounted = false;
             if (unsubscribe) {
                 unsubscribe();
@@ -41,7 +38,11 @@ const ProjectList = () => {
         };
     }, []);
 
-    // Voorkom re-renders als de state niet verandert
+    const handleProjectClick = (projectId) => {
+        window.history.pushState({}, '', `/project/${projectId}`);
+        window.dispatchEvent(new PopStateEvent('popstate'));
+    };
+
     const renderedContent = React.useMemo(() => {
         if (loading) {
             return React.createElement('div', { className: 'text-center p-4' },
@@ -76,12 +77,13 @@ const ProjectList = () => {
                     return React.createElement(
                         'div',
                         {
-                            key: project.id || Math.random(),
-                            className: 'bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow'
+                            key: project.id,
+                            onClick: () => handleProjectClick(project.id),
+                            className: 'bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow cursor-pointer hover:bg-gray-50'
                         },
                         [
                             React.createElement('h3', 
-                                { className: 'text-lg font-semibold mb-2' },
+                                { className: 'text-lg font-semibold mb-2 text-blue-600' },
                                 project.name || 'Naamloos project'
                             ),
                             React.createElement('p',
@@ -108,5 +110,7 @@ const ProjectList = () => {
 
     return renderedContent;
 };
+
+export default ProjectList;
 
 export default ProjectList;
