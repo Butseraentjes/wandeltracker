@@ -1,3 +1,6 @@
+// In app.js update de import naar:
+import { ProjectDetailView } from './views/ProjectDetailView.js';
+
 import { Router, View } from './lib/router.js';
 import { initializeAuth, loginWithGoogle, logout, createProject } from './lib/firebase.js';
 
@@ -229,8 +232,8 @@ initializeAuth(
 // Start router
 router.start();
 
-// Voeg deze import toe bovenaan app.js
-import { ProjectDetailView } from './views/ProjectDetailView.js';
+
+
 
 // Update de routes configuratie
 const routes = {
