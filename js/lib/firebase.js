@@ -1,6 +1,7 @@
+const firebase = window.firebase;
 console.log('Loading Firebase configuration...');
 
-// Wacht tot Firebase beschikbaar is
+// Firebase initialisatie
 const app = firebase.initializeApp({
     apiKey: "AIzaSyAgT_uX_5RrP7CKiI5-KpBSUXvvT928qik",
     authDomain: "wandeltracker-3692d.firebaseapp.com",
