@@ -2,7 +2,7 @@ import { subscribeToProject, saveWalk, subscribeToWalks } from '../lib/firebase.
 import { View } from '../lib/router.js';
 import { config } from '../lib/config.js';
 import { subscribeToProject, saveWalk, subscribeToWalks, updateProjectGoal } from '../lib/firebase.js';
-
+ 
 export class ProjectDetailView extends View {
     constructor() {
         super();
