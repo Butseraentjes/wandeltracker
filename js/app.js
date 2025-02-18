@@ -1,8 +1,7 @@
-// In app.js update de import naar:
 import { ProjectDetailView } from './views/ProjectDetailView.js';
-
 import { Router, View } from './lib/router.js';
 import { initializeAuth, loginWithGoogle, logout, createProject } from './lib/firebase.js';
+import Homepage from './components/Homepage.js';
 
 // Home View
 class HomeView extends View {
@@ -93,6 +92,7 @@ class HomeView extends View {
         }
     }
 }
+
 // Settings View
 class SettingsView extends View {
     async render() {
@@ -123,7 +123,7 @@ const routes = {
     '/': { view: HomeView },
     '/settings': { view: SettingsView },
     '/404': { view: NotFoundView },
-    '/project/:id': { view: ProjectDetailView }  // Nieuwe route
+    '/project/:id': { view: ProjectDetailView }
 };
 
 // Initialize Router
@@ -143,38 +143,6 @@ function hideModal() {
 
 // Setup event listeners
 document.addEventListener('DOMContentLoaded', () => {
-    // Login button
-    const loginBtn = document.getElementById('google-login-btn');
-    if (loginBtn) {
-        loginBtn.addEventListener('click', async () => {
-            try {
-                document.getElementById('loading-spinner').classList.remove('hidden');
-                const user = await loginWithGoogle();
-            } catch (error) {
-                console.error('Login failed:', error);
-                alert('Inloggen mislukt. Probeer het opnieuw.');
-            } finally {
-                document.getElementById('loading-spinner').classList.add('hidden');
-            }
-        });
-    }
-
-    // Logout button
-    const logoutBtn = document.getElementById('logout-btn');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', async () => {
-            try {
-                document.getElementById('loading-spinner').classList.remove('hidden');
-                await logout();
-            } catch (error) {
-                console.error('Logout failed:', error);
-                alert('Uitloggen mislukt. Probeer het opnieuw.');
-            } finally {
-                document.getElementById('loading-spinner').classList.add('hidden');
-            }
-        });
-    }
-
     // Project form submission
     const projectForm = document.getElementById('project-form');
     if (projectForm) {
@@ -214,6 +182,22 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('project-modal')?.addEventListener('click', (e) => {
         if (e.target === e.currentTarget) hideModal();
     });
+
+    // Logout button
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', async () => {
+            try {
+                document.getElementById('loading-spinner').classList.remove('hidden');
+                await logout();
+            } catch (error) {
+                console.error('Logout failed:', error);
+                alert('Uitloggen mislukt. Probeer het opnieuw.');
+            } finally {
+                document.getElementById('loading-spinner').classList.add('hidden');
+            }
+        });
+    }
 });
 
 // Initialize auth state observer
@@ -221,18 +205,37 @@ initializeAuth(
     // Login callback
     (user) => {
         console.log('User logged in:', user.email);
+        const loginContainer = document.getElementById('login-container');
+        if (loginContainer) {
+            loginContainer.innerHTML = ''; // Clear homepage
+        }
+        // Toon main content en navigatie
+        document.getElementById('main-content')?.classList.remove('hidden');
+        document.getElementById('main-nav')?.classList.remove('hidden');
+        document.getElementById('logout-btn')?.classList.remove('hidden');
+        const userInfo = document.getElementById('user-info');
+        if (userInfo) userInfo.textContent = user.email;
+        
         router.start();
     },
     // Logout callback
     () => {
         console.log('User logged out');
-        router.navigate('/');
+        // Verberg main content en navigatie
+        document.getElementById('main-content')?.classList.add('hidden');
+        document.getElementById('main-nav')?.classList.add('hidden');
+        document.getElementById('logout-btn')?.classList.add('hidden');
+        const userInfo = document.getElementById('user-info');
+        if (userInfo) userInfo.textContent = '';
+
+        // Toon homepage
+        const loginContainer = document.getElementById('login-container');
+        if (loginContainer) {
+            const root = ReactDOM.createRoot(loginContainer);
+            root.render(React.createElement(Homepage));
+        }
     }
 );
 
 // Start router
 router.start();
-
-
-
-
