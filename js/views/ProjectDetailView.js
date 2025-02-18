@@ -1,6 +1,7 @@
 import { subscribeToProject, saveWalk, subscribeToWalks } from '../lib/firebase.js';
 import { View } from '../lib/router.js';
 import { config } from '../lib/config.js';
+import { subscribeToProject, saveWalk, subscribeToWalks, updateProjectGoal } from '../lib/firebase.js';
 
 export class ProjectDetailView extends View {
     constructor() {
@@ -104,26 +105,28 @@ export class ProjectDetailView extends View {
 
                 const header = document.querySelector('.project-header');
                 if (header) {
-                    header.innerHTML = `
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <h2 class="text-2xl font-bold">${project.name}</h2>
-                                <p class="text-gray-600">
-                                    ${project.location.street} ${project.location.number}, 
-                                    ${project.location.postalCode} ${project.location.city}
-                                </p>
-                                ${project.description ? `<p class="mt-2">${project.description}</p>` : ''}
-                                <div class="mt-4">
-                                    <button id="add-goal-btn" class="text-blue-600 hover:text-blue-800">
-                                        + Voeg doel toe
-                                    </button>
-                                </div>
-                            </div>
-                            <a href="/" data-route="/" class="text-blue-600 hover:text-blue-800">
-                                ← Terug naar projecten
-                            </a>
-                        </div>
-                    `;
+header.innerHTML = `
+    <div class="flex justify-between items-center">
+        <div>
+            <h2 class="text-2xl font-bold">${project.name}</h2>
+            <p class="text-gray-600">
+                ${project.location.street} ${project.location.number}, 
+                ${project.location.postalCode} ${project.location.city}
+            </p>
+            ${project.description ? `<p class="mt-2">${project.description}</p>` : ''}
+            <div class="mt-4">
+                ${project.goal 
+                    ? `<p class="text-green-600">Doel: ${project.goal.city}</p>`
+                    : `<button id="add-goal-btn" class="text-blue-600 hover:text-blue-800">+ Voeg doel toe</button>`
+                }
+            </div>
+        </div>
+        <a href="/" data-route="/" class="text-blue-600 hover:text-blue-800">
+            ← Terug naar projecten
+        </a>
+    </div>
+`;
+
                 }
 
                 // Goal button event listeners
@@ -146,12 +149,21 @@ export class ProjectDetailView extends View {
                     goalForm.reset();
                 };
 
-                goalForm.addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    const city = document.getElementById('goal-city').value;
-                    alert(`Ingevoerde stad: ${city}`); // Voor nu alleen een alert
-                    hideGoalModal();
-                });
+goalForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    try {
+        document.getElementById('loading-spinner').classList.remove('hidden');
+        const city = document.getElementById('goal-city').value;
+        
+        await updateProjectGoal(projectId, { city });
+        hideGoalModal();
+    } catch (error) {
+        console.error('Error saving goal:', error);
+        alert('Er is iets misgegaan bij het opslaan van het doel. Probeer het opnieuw.');
+    } finally {
+        document.getElementById('loading-spinner').classList.add('hidden');
+    }
+});
 
                 closeGoalBtn.addEventListener('click', hideGoalModal);
                 cancelGoalBtn.addEventListener('click', hideGoalModal);
