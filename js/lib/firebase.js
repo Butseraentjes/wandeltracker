@@ -244,5 +244,4 @@ export async function updateProjectGoal(projectId, goalData) {
     }
 }
 
-// Laatste export regel
 export { db, auth };
