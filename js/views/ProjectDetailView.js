@@ -11,31 +11,37 @@ export class ProjectDetailView extends View {
   }
 
   // Helper functie voor het ophalen van route coördinaten
-  async getRouteCoordinates(startLat, startLng, distance) {
-    try {
-      // Bereken eindpunt op ongeveer de juiste afstand
-      const endLng = startLng + (distance / 111);
-
-      // OSRM routing API aanroepen
-      const response = await fetch(
-        `https://router.project-osrm.org/route/v1/foot/${startLng},${startLat};${endLng},${startLat}?overview=full&geometries=geojson`
-      );
-      const data = await response.json();
-
-      if (data.routes && data.routes[0]) {
-        return data.routes[0].geometry.coordinates.map(coord => [coord[1], coord[0]]);
-      }
-
-      throw new Error('Geen route gevonden');
-    } catch (error) {
-      console.error('Error getting route:', error);
-      // Fallback naar rechte lijn
-      return [
-        [startLat, startLng],
-        [startLat, startLng + (distance / 111)]
-      ];
+async getRouteCoordinates(startLat, startLng, distance) {
+  try {
+    // Bereken eindpunt op ongeveer de juiste afstand
+    const endLng = startLng + (distance / 111);
+    
+    // OSRM routing API aanroepen met alternatieven
+    const response = await fetch(
+      `https://router.project-osrm.org/route/v1/foot/${startLng},${startLat};${endLng},${startLat}?overview=full&geometries=geojson&alternatives=true`
+    );
+    const data = await response.json();
+    
+    if (data.routes && data.routes.length > 0) {
+      // Selecteer de route met de kortste afstand
+      const shortestRoute = data.routes.reduce((shortest, route) => {
+        return route.distance < shortest.distance ? route : shortest;
+      }, data.routes[0]);
+      
+      return shortestRoute.geometry.coordinates.map(coord => [coord[1], coord[0]]);
     }
+    
+    throw new Error('Geen route gevonden');
+  } catch (error) {
+    console.error('Error getting route:', error);
+    // Fallback naar rechte lijn
+    return [
+      [startLat, startLng],
+      [startLat, startLng + (distance / 111)]
+    ];
   }
+}
+
 
   async render() {
     console.log('ProjectDetailView render start');
