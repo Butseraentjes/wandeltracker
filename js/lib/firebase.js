@@ -116,6 +116,43 @@ export async function createProject(projectData) {
     }
 }
 
+// Nieuwe functie voor het instellen van een project doel
+export async function setProjectDestination(projectId, destinationName) {
+    try {
+        const user = auth.currentUser;
+        if (!user) throw new Error("Geen gebruiker ingelogd");
+
+        // Geocoding van de destination met GraphHopper
+        const destinationQuery = encodeURIComponent(destinationName);
+        const response = await fetch(`https://graphhopper.com/api/1/geocode?q=${destinationQuery}&locale=nl&key=1fb0ae3f-1d34-4c16-896d-02ee3f40d4ec`);
+        const data = await response.json();
+
+        if (!data.hits || data.hits.length === 0) {
+            throw new Error("Kon de opgegeven bestemming niet vinden");
+        }
+
+        const destinationLocation = data.hits[0];
+        
+        // Update het project met de nieuwe destination
+        await db.collection("projects").doc(projectId).update({
+            destination: {
+                name: destinationName,
+                coordinates: {
+                    lat: destinationLocation.point.lat,
+                    lng: destinationLocation.point.lng
+                },
+                completed: false,
+                setAt: firebase.firestore.FieldValue.serverTimestamp()
+            }
+        });
+
+        return destinationLocation;
+    } catch (error) {
+        console.error("Error setting project destination:", error);
+        throw error;
+    }
+}
+
 // Projecten ophalen
 export function subscribeToProjects(callback) {
     console.log('Setting up projects subscription...');
@@ -228,39 +265,3 @@ export async function getCurrentUser() {
 }
 
 export { db, auth };
-
-// Project functies
-export async function createProject(projectData) {
-    try {
-        const user = auth.currentUser;
-        if (!user) throw new Error("Geen gebruiker ingelogd");
-
-        // Geocoding van de destination met GraphHopper
-        const destinationQuery = encodeURIComponent(projectData.destination);
-        const response = await fetch(`https://graphhopper.com/api/1/geocode?q=${destinationQuery}&locale=nl&key=1fb0ae3f-1d34-4c16-896d-02ee3f40d4ec`);
-        const data = await response.json();
-
-        if (!data.hits || data.hits.length === 0) {
-            throw new Error("Kon de opgegeven bestemming niet vinden");
-        }
-
-        const destinationLocation = data.hits[0];
-        
-        const projectsRef = db.collection("projects");
-        const newProjectRef = projectsRef.doc();
-
-        await newProjectRef.set({
-            ...projectData,
-            userId: user.uid,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-            destination: {
-                name: projectData.destination,
-                coordinates: {
-                    lat: destinationLocation.point.lat,
-                    lng: destinationLocation.point.lng
-                },
-                completed: false
-            }
-        });
-
-        return newProjectRef.id;
