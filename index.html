@@ -92,19 +92,24 @@
         </div>
     </footer>
 
-<!-- Eerst Firebase en andere externe libraries -->
+<!-- Externe libraries -->
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+
+<!-- FullCalendar scripts -->
 <script src='https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/index.global.min.js'></script>
 <script src='https://cdn.jsdelivr.net/npm/@fullcalendar/web-component@6.1.10/index.global.min.js'></script>
 <script src='https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.10/index.global.min.js'></script>
 <script src='https://cdn.jsdelivr.net/npm/@fullcalendar/interaction@6.1.10/index.global.min.js'></script>
 
-<!-- Dan onze applicatie scripts -->
-<script src="js/lib/firebase.js"></script>
+<!-- FullCalendar CSS -->
+<link href='https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/main.min.css' rel='stylesheet' />
+
+<!-- Applicatie scripts (allemaal als modules) -->
+<script type="module" src="js/lib/firebase.js"></script>
 <script type="module" src="js/components/ProjectList.js"></script>
 <script type="module" src="js/app.js"></script>
 
