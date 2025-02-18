@@ -1,4 +1,7 @@
-// Verwijder de imports en gebruik de compat versie
+// Firebase imports met compat versie
+const firebase = window.firebase;
+
+// Initialize Firebase
 const app = firebase.initializeApp({
     apiKey: "AIzaSyAgT_uX_5RrP7CKiI5-KpBSUXvvT928qik",
     authDomain: "wandeltracker-3692d.firebaseapp.com",
@@ -138,6 +141,7 @@ export function subscribeToProjects(callback) {
 
 export function subscribeToProject(projectId, callback) {
     const user = auth.currentUser;
+    console.log('Current user:', user);
     if (!user) return null;
 
     return db.collection("projects").doc(projectId)
