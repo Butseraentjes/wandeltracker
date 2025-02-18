@@ -1,5 +1,7 @@
 import { subscribeToProject, saveWalk, subscribeToWalks } from '../lib/firebase.js';
 import { View } from '../lib/router.js';
+// Importeer de config voor GraphHopper
+import { config } from '../lib/config.js';
 
 export class ProjectDetailView extends View {
   constructor() {
@@ -10,38 +12,46 @@ export class ProjectDetailView extends View {
     this.map = null;
   }
 
-  // Helper functie voor het ophalen van route coördinaten
-async getRouteCoordinates(startLat, startLng, distance) {
-  try {
-    // Bereken eindpunt op ongeveer de juiste afstand
-    const endLng = startLng + (distance / 111);
-    
-    // OSRM routing API aanroepen met alternatieven
-    const response = await fetch(
-      `https://router.project-osrm.org/route/v1/foot/${startLng},${startLat};${endLng},${startLat}?overview=full&geometries=geojson&alternatives=true`
-    );
-    const data = await response.json();
-    
-    if (data.routes && data.routes.length > 0) {
-      // Selecteer de route met de kortste afstand
-      const shortestRoute = data.routes.reduce((shortest, route) => {
-        return route.distance < shortest.distance ? route : shortest;
-      }, data.routes[0]);
+  // Helper functie voor het ophalen van route coördinaten via GraphHopper
+  async getRouteCoordinates(startLat, startLng, distance) {
+    try {
+      // Bereken eindpunt op ongeveer de juiste afstand
+      const endLng = startLng + (distance / 111);
       
-      return shortestRoute.geometry.coordinates.map(coord => [coord[1], coord[0]]);
-    }
-    
-    throw new Error('Geen route gevonden');
-  } catch (error) {
-    console.error('Error getting route:', error);
-    // Fallback naar rechte lijn
-    return [
-      [startLat, startLng],
-      [startLat, startLng + (distance / 111)]
-    ];
-  }
-}
+      // GraphHopper API configuratie
+      const { apiKey, baseUrl } = config.graphhopper;
+      const params = new URLSearchParams({
+        key: apiKey,
+        profile: 'foot', // Specifiek voor wandelen
+        points_encoded: false,
+        details: 'street_name',
+        instructions: true,
+        calc_points: true,
+        point: [
+          `${startLat},${startLng}`,
+          `${startLat},${endLng}`
+        ]
+      });
 
+      // GraphHopper API aanroepen
+      const response = await fetch(`${baseUrl}/route?${params}`);
+      const data = await response.json();
+      
+      if (data.paths && data.paths.length > 0) {
+        // GraphHopper geeft al de coördinaten in het juiste formaat [lat, lng]
+        return data.paths[0].points.coordinates;
+      }
+      
+      throw new Error('Geen route gevonden');
+    } catch (error) {
+      console.error('Error getting route:', error);
+      // Fallback naar rechte lijn
+      return [
+        [startLat, startLng],
+        [startLat, startLng + (distance / 111)]
+      ];
+    }
+  }
 
   async render() {
     console.log('ProjectDetailView render start');
@@ -374,5 +384,6 @@ async getRouteCoordinates(startLat, startLng, distance) {
       this.map.remove();
       this.map = null;
     }
+    super.cleanup();
   }
 }
