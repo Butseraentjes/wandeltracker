@@ -92,8 +92,7 @@
         </div>
     </footer>
 
-<!-- Scripts -->
-<!-- External Libraries -->
+<!-- Eerst Firebase en andere externe libraries -->
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
@@ -103,12 +102,14 @@
 <script src='https://cdn.jsdelivr.net/npm/@fullcalendar/web-component@6.1.10/index.global.min.js'></script>
 <script src='https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.10/index.global.min.js'></script>
 <script src='https://cdn.jsdelivr.net/npm/@fullcalendar/interaction@6.1.10/index.global.min.js'></script>
-<link href='https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/main.min.css' rel='stylesheet' />
 
-<!-- Application Scripts -->
-<script type="module" src="js/lib/firebase.js"></script>
+<!-- Dan onze applicatie scripts -->
+<script src="js/lib/firebase.js"></script>
 <script type="module" src="js/components/ProjectList.js"></script>
 <script type="module" src="js/app.js"></script>
+
+<!-- Styles -->
+<link href='https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/main.min.css' rel='stylesheet' />
 
 <!-- Voeg dit toe voor de closing body tag -->
 <div id="walk-modal" class="modal hidden">
