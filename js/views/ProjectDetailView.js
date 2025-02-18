@@ -7,6 +7,7 @@ export class ProjectDetailView extends View {
         this.unsubscribeProject = null;
         this.unsubscribeWalks = null;
         this.calendar = null;
+        this.map = null;
     }
 
     async render() {
@@ -47,16 +48,14 @@ export class ProjectDetailView extends View {
                         </div>
                         <div class="map-section bg-white p-6 rounded-lg shadow">
                             <h3 class="text-lg font-semibold mb-4">Kaart</h3>
-                            <p>Hier komt later de kaart...</p>
+                            <div id="map" style="height: 400px;"></div>
                         </div>
                     </div>
                 </div>
             `;
 
             // Project data ophalen en weergeven
-            console.log('Setting up project subscription for ID:', projectId);
             this.unsubscribeProject = subscribeToProject(projectId, (project) => {
-                console.log('Received project data:', project);
                 if (!project) {
                     mainContent.innerHTML = `
                         <div class="error-container">
@@ -86,8 +85,9 @@ export class ProjectDetailView extends View {
                     `;
                 }
 
-                // Initialiseer kalender
+                // Initialiseer kalender en kaart
                 this.initializeCalendar(project);
+                this.initializeMap(project);
                 
                 // Subscribe naar wandelingen
                 if (this.unsubscribeWalks) {
@@ -109,7 +109,7 @@ export class ProjectDetailView extends View {
                         title: `${walk.distance} km`,
                         start: walk.date,
                         display: 'block',
-                        backgroundColor: '#3B82F6', // Tailwind blue-500
+                        backgroundColor: '#3B82F6',
                     }));
                     
                     // Update calendar events
@@ -117,6 +117,9 @@ export class ProjectDetailView extends View {
                         this.calendar.removeAllEvents();
                         this.calendar.addEventSource(events);
                     }
+
+                    // Update kaart met de nieuwe totale afstand
+                    this.updateMapPath(project, totalDistance);
                 });
             });
 
@@ -134,13 +137,8 @@ export class ProjectDetailView extends View {
     }
 
     initializeCalendar(project) {
-        console.log('Initializing calendar for project:', project);
         const calendarEl = document.getElementById('calendar');
-        console.log('Calendar element:', calendarEl);
-        if (!calendarEl || this.calendar) {
-            console.log('Calendar already initialized or element not found');
-            return;
-        }
+        if (!calendarEl || this.calendar) return;
 
         this.calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'dayGridMonth',
@@ -152,7 +150,6 @@ export class ProjectDetailView extends View {
             locale: 'nl',
             height: 'auto',
             selectable: true,
-            events: [], // Hier komen later de wandelingen
             dateClick: (info) => {
                 this.handleDateClick(info, project);
             }
@@ -168,6 +165,61 @@ export class ProjectDetailView extends View {
                 this.handleDateClick({ dateStr: today }, project);
             });
         }
+    }
+
+    initializeMap(project) {
+        const mapDiv = document.getElementById('map');
+        if (!mapDiv || this.map) return;
+
+        // Voorlopig gebruiken we vaste coördinaten voor Lebbeke
+        const defaultLat = 50.9953;
+        const defaultLng = 4.1277;
+
+        // Initialiseer de kaart
+        this.map = L.map('map').setView([defaultLat, defaultLng], 13);
+
+        // Voeg de OpenStreetMap tile layer toe
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(this.map);
+
+        // Voeg een marker toe voor de startlocatie
+        L.marker([defaultLat, defaultLng])
+            .addTo(this.map)
+            .bindPopup(`Startlocatie: ${project.location.street} ${project.location.number}, ${project.location.postalCode} ${project.location.city}`);
+    }
+
+    updateMapPath(project, totalDistance) {
+        if (!this.map) return;
+
+        // Voorlopig gebruiken we een vaste richting (naar het oosten)
+        const startLat = 50.9953;
+        const startLng = 4.1277;
+        const endLng = startLng + (totalDistance / 111); // Ruwe benadering: 1 lengtegraad ≈ 111 km
+
+        // Verwijder bestaande lijnen
+        this.map.eachLayer((layer) => {
+            if (layer instanceof L.Polyline) {
+                this.map.removeLayer(layer);
+            }
+        });
+
+        // Teken nieuwe lijn
+        const pathLine = L.polyline([
+            [startLat, startLng],
+            [startLat, endLng]
+        ], {
+            color: 'blue',
+            weight: 3
+        }).addTo(this.map);
+
+        // Voeg eindpunt marker toe
+        L.marker([startLat, endLng])
+            .addTo(this.map)
+            .bindPopup(`Huidige positie: ${totalDistance.toFixed(1)} km vanaf start`);
+
+        // Pas kaartweergave aan om hele pad te tonen
+        this.map.fitBounds(pathLine.getBounds(), { padding: [50, 50] });
     }
 
     handleDateClick(info, project) {
@@ -240,6 +292,10 @@ export class ProjectDetailView extends View {
         if (this.calendar) {
             this.calendar.destroy();
             this.calendar = null;
+        }
+        if (this.map) {
+            this.map.remove();
+            this.map = null;
         }
     }
 }
