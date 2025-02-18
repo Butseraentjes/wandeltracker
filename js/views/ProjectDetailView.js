@@ -120,8 +120,13 @@ export class ProjectDetailView extends View {
     }
 
     initializeCalendar(project) {
+        console.log('Initializing calendar for project:', project);
         const calendarEl = document.getElementById('calendar');
-        if (!calendarEl || this.calendar) return;
+        console.log('Calendar element:', calendarEl);
+        if (!calendarEl || this.calendar) {
+            console.log('Calendar already initialized or element not found');
+            return;
+        }
 
         this.calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'dayGridMonth',
