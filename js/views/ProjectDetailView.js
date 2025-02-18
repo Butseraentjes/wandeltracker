@@ -1,6 +1,47 @@
 import { subscribeToProject, saveWalk, subscribeToWalks } from '../lib/firebase.js';
 import { View } from '../lib/router.js';
 
+// Voeg deze functie toe aan het begin van je file, net na de imports:
+
+// Helper functie voor het ophalen van wandelpaden
+async function getWalkingPaths(startLat, startLng, bearing = 90) { // bearing 90 = oosten
+    // Zoekgebied definiëren (rechthoek richting het oosten)
+    const radius = 0.1; // ongeveer 11km
+    const bbox = `${startLat - radius},${startLng},${startLat + radius},${startLng + radius * 2}`;
+    
+    // Overpass query voor wandelpaden
+    const query = `
+        [out:json][timeout:25];
+        (
+            way["highway"="footway"](${bbox});
+            way["highway"="path"](${bbox});
+            way["highway"="pedestrian"](${bbox});
+            way["highway"="track"](${bbox});
+        );
+        out body;
+        >;
+        out skel qt;
+    `;
+
+    try {
+        const response = await fetch('https://overpass-api.de/api/interpreter', {
+            method: 'POST',
+            body: query
+        });
+        
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        
+        const data = await response.json();
+        console.log('Found walking paths:', data.elements.length);
+        return data.elements;
+    } catch (error) {
+        console.error('Error fetching walking paths:', error);
+        return [];
+    }
+}
+
 export class ProjectDetailView extends View {
     constructor() {
         super();
