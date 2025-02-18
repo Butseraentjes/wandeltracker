@@ -221,74 +221,57 @@ export class ProjectDetailView extends View {
             .bindPopup(`Startlocatie: ${project.location.street} ${project.location.number}, ${project.location.postalCode} ${project.location.city}`);
     }
 
-    async updateMapPath(project, totalDistance) {
-        if (!this.map) return;
+async updateMapPath(project, totalDistance) {
+    if (!this.map) return;
 
-        const startLat = 50.9953;
-        const startLng = 4.1277;
+    const startLat = 50.9953;
+    const startLng = 4.1277;
 
-        // Verwijder bestaande paden
-        this.map.eachLayer((layer) => {
-            if (layer instanceof L.Polyline || (layer instanceof L.Marker && layer._popup?.getContent().includes('Huidige positie'))) {
-                this.map.removeLayer(layer);
-            }
-        });
+    // Verwijder bestaande paden
+    this.map.eachLayer((layer) => {
+        if (layer instanceof L.Polyline || (layer instanceof L.Marker && layer._popup?.getContent().includes('Huidige positie'))) {
+            this.map.removeLayer(layer);
+        }
+    });
 
-        try {
-            // Haal wandelpaden op
-            const paths = await getWalkingPaths(startLat, startLng);
-            
-            // Teken alle gevonden paden
-            paths.forEach(path => {
-                if (path.geometry) {
-                    const coordinates = path.geometry.map(point => [point.lat, point.lon]);
-                    L.polyline(coordinates, {
-                        color: 'gray',
-                        weight: 2,
-                        opacity: 0.5
-                    }).addTo(this.map);
-                }
+    try {
+        // Teken directe lijn voor de totale afstand
+        const endLng = startLng + (totalDistance / 111); // Ruwe benadering: 1 lengtegraad ≈ 111 km
+        
+        const mainPath = L.polyline([
+            [startLat, startLng],
+            [startLat, endLng]
+        ], {
+            color: '#3B82F6', // Tailwind blue-500
+            weight: 4,
+            opacity: 0.8,
+            // Voeg een subtiel effect toe
+            dashArray: '10, 5',
+            lineCap: 'round'
+        }).addTo(this.map);
+
+        // Voeg eindpunt marker toe met mooiere popup
+        const marker = L.marker([startLat, endLng])
+            .addTo(this.map)
+            .bindPopup(`
+                <div class="text-center">
+                    <strong>Huidige positie</strong><br>
+                    ${totalDistance.toFixed(1)} km vanaf start
+                </div>
+            `, {
+                className: 'custom-popup'
             });
 
-            // Teken directe lijn voor de totale afstand
-            const endLng = startLng + (totalDistance / 111); // Ruwe benadering: 1 lengtegraad ≈ 111 km
-            
-            const mainPath = L.polyline([
-                [startLat, startLng],
-                [startLat, endLng]
-            ], {
-                color: 'blue',
-                weight: 3
-            }).addTo(this.map);
+        // Open de popup direct
+        marker.openPopup();
 
-            // Voeg eindpunt marker toe
-            L.marker([startLat, endLng])
-                .addTo(this.map)
-                .bindPopup(`Huidige positie: ${totalDistance.toFixed(1)} km vanaf start`);
+        // Pas kaartweergave aan met wat meer padding
+        this.map.fitBounds(mainPath.getBounds(), { padding: [50, 50] });
 
-            // Pas kaartweergave aan
-            this.map.fitBounds(mainPath.getBounds(), { padding: [50, 50] });
-
-        } catch (error) {
-            console.error('Error updating map:', error);
-            
-            // Fallback: teken alleen een rechte lijn
-            const endLng = startLng + (totalDistance / 111);
-            const pathLine = L.polyline([
-                [startLat, startLng],
-                [startLat, endLng]
-            ], {
-                color: 'blue',
-                weight: 3
-            }).addTo(this.map);
-
-            L.marker([startLat, endLng])
-                .addTo(this.map)
-                .bindPopup(`Huidige positie: ${totalDistance.toFixed(1)} km vanaf start`);
-
-            this.map.fitBounds(pathLine.getBounds(), { padding: [50, 50] });
-        }
+    } catch (error) {
+        console.error('Error updating map:', error);
     }
+}
 
     handleDateClick(info, project) {
         const modal = document.getElementById('walk-modal');
