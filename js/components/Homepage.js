@@ -1,8 +1,20 @@
-
 import React from 'react';
 import { ArrowRight, MapPin, Users, Activity, Globe, ChevronDown } from 'lucide-react';
+import { loginWithGoogle } from '../lib/firebase.js';
 
 const Homepage = () => {
+  const handleLoginClick = async () => {
+    try {
+      document.getElementById('loading-spinner').classList.remove('hidden');
+      await loginWithGoogle();
+    } catch (error) {
+      console.error('Login failed:', error);
+      alert('Inloggen mislukt. Probeer het opnieuw.');
+    } finally {
+      document.getElementById('loading-spinner').classList.add('hidden');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
       {/* Hero Section */}
@@ -17,7 +29,9 @@ const Homepage = () => {
             <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
               Volg je dagelijkse wandelingen en ontdek waar je zou zijn als je in één rechte lijn doorwandelde. Van Gent naar Sint-Petersburg? Van Brussel naar Marrakech?
             </p>
-            <button className="bg-blue-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-colors flex items-center gap-2 mx-auto">
+            <button 
+              onClick={handleLoginClick}
+              className="bg-blue-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-colors flex items-center gap-2 mx-auto">
               Begin je reis <ArrowRight className="w-5 h-5" />
             </button>
           </div>
@@ -130,15 +144,11 @@ const Homepage = () => {
             Wandelen is niet alleen gezond, het is ook een geweldige manier om je omgeving te verkennen. 
             Start nu en ontdek waar je kilometers je naartoe brengen!
           </p>
-          <button className="bg-white text-blue-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-blue-50 transition-colors">
+          <button 
+            onClick={handleLoginClick}
+            className="bg-white text-blue-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-blue-50 transition-colors">
             Maak gratis account
           </button>
-          <div className="mt-12">
-            <button className="text-blue-100 flex items-center gap-2 mx-auto">
-              Meer informatie
-              <ChevronDown className="w-5 h-5" />
-            </button>
-          </div>
         </div>
       </section>
     </div>
