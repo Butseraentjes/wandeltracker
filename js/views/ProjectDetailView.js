@@ -126,13 +126,37 @@ export class ProjectDetailView extends View {
                     `;
 
                     // Voeg event listener toe voor de doel knop
-                    const addGoalBtn = document.getElementById('add-goal-btn');
-                    if (addGoalBtn) {
-                        addGoalBtn.addEventListener('click', () => {
-                            alert('Doel toevoegen knop werkt!');
-                        });
-                    }
-                }
+const addGoalBtn = document.getElementById('add-goal-btn');
+if (addGoalBtn) {
+    addGoalBtn.addEventListener('click', () => {
+        const modal = document.getElementById('goal-modal');
+        modal.classList.remove('hidden');
+    });
+}
+
+                    // Voeg deze event listeners toe in de render functie na de bovenstaande code:
+const goalForm = document.getElementById('goal-form');
+const goalModal = document.getElementById('goal-modal');
+const closeGoalBtn = goalModal.querySelector('.close-modal');
+const cancelGoalBtn = document.getElementById('cancel-goal');
+
+const hideGoalModal = () => {
+    goalModal.classList.add('hidden');
+    goalForm.reset();
+};
+
+goalForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const city = document.getElementById('goal-city').value;
+    alert(`Ingevoerde stad: ${city}`); // Voor nu alleen een alert
+    hideGoalModal();
+});
+
+closeGoalBtn.addEventListener('click', hideGoalModal);
+cancelGoalBtn.addEventListener('click', hideGoalModal);
+goalModal.addEventListener('click', (e) => {
+    if (e.target === goalModal) hideGoalModal();
+});
 
                 this.initializeCalendar(project);
                 this.initializeMap(project);
