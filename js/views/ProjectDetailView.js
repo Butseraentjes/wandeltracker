@@ -49,7 +49,9 @@ export class ProjectDetailView extends View {
             `;
 
             // Project data ophalen en weergeven
+            console.log('Setting up project subscription for ID:', projectId);
             this.unsubscribeProject = subscribeToProject(projectId, (project) => {
+                console.log('Received project data:', project);
                 if (!project) {
                     mainContent.innerHTML = `
                         <div class="error-container">
