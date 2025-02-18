@@ -1,37 +1,39 @@
 import { subscribeToProject, saveWalk, subscribeToWalks } from '../lib/firebase.js';
 import { View } from '../lib/router.js';
 
-// Helper functie voor het ophalen van wandelpaden
-async function getWalkingPaths(startLat, startLng, bearing = 90) {
-    try {
-        // Kleiner zoekgebied
-        const radius = 0.05; // ~5km
-        const bbox = `${startLat - radius},${startLng},${startLat + radius},${startLng + radius}`;
-        
-        // Vereenvoudigde query
-        const query = `
-            [out:json][timeout:25];
-            way["highway"="footway"](${bbox});
-            out body geom;
-        `;
-
-        const response = await fetch('https://overpass-api.de/api/interpreter', {
-            method: 'POST',
-            body: query
-        });
-        
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        
-        const data = await response.json();
-        console.log('Found walking paths:', data.elements.length);
-        return data.elements;
-    } catch (error) {
-        console.error('Error fetching walking paths:', error);
-        return [];
+export class ProjectDetailView extends View {
+    constructor() {
+        super();
+        this.unsubscribeProject = null;
+        this.unsubscribeWalks = null;
+        this.calendar = null;
+        this.map = null;
     }
-}
+
+    // Helper functie voor het ophalen van route coördinaten
+    async getRouteCoordinates(startLat, startLng, distance) {
+        try {
+            // Bereken eindpunt op ongeveer de juiste afstand
+            const endLng = startLng + (distance / 111);
+            
+            // OSRM routing API aanroepen
+            const response = await fetch(`https://router.project-osrm.org/route/v1/foot/${startLng},${startLat};${endLng},${startLat}?overview=full&geometries=geojson`);
+            const data = await response.json();
+            
+            if (data.routes && data.routes[0]) {
+                return data.routes[0].geometry.coordinates.map(coord => [coord[1], coord[0]]);
+            }
+            
+            throw new Error('Geen route gevonden');
+        } catch (error) {
+            console.error('Error getting route:', error);
+            // Fallback naar rechte lijn
+            return [
+                [startLat, startLng],
+                [startLat, startLng + (distance / 111)]
+            ];
+        }
+    }
 
 export class ProjectDetailView extends View {
     constructor() {
@@ -246,77 +248,78 @@ async function getRouteCoordinates(startLat, startLng, distance) {
     }
 }
     
-// Update de updateMapPath functie:
 async updateMapPath(project, totalDistance) {
-    if (!this.map) return;
+        if (!this.map) return;
 
-    const startLat = 50.9953;
-    const startLng = 4.1277;
+        const startLat = 50.9953;
+        const startLng = 4.1277;
 
-    // Verwijder bestaande paden
-    this.map.eachLayer((layer) => {
-        if (layer instanceof L.Polyline || (layer instanceof L.Marker && layer._popup?.getContent().includes('Huidige positie'))) {
-            this.map.removeLayer(layer);
+        // Verwijder bestaande paden
+        this.map.eachLayer((layer) => {
+            if (layer instanceof L.Polyline || (layer instanceof L.Marker && layer._popup?.getContent().includes('Huidige positie'))) {
+                this.map.removeLayer(layer);
+            }
+        });
+
+        try {
+            // Haal route coördinaten op
+            const routeCoords = await this.getRouteCoordinates(startLat, startLng, totalDistance);
+            
+            // Teken de route
+            const mainPath = L.polyline(routeCoords, {
+                color: '#3B82F6', // Tailwind blue-500
+                weight: 4,
+                opacity: 0.8,
+                lineCap: 'round'
+            }).addTo(this.map);
+
+            // Voeg eindpunt marker toe
+            const endPoint = routeCoords[routeCoords.length - 1];
+            const marker = L.marker(endPoint)
+                .addTo(this.map)
+                .bindPopup(`
+                    <div class="text-center">
+                        <strong>Huidige positie</strong><br>
+                        ${totalDistance.toFixed(1)} km vanaf start
+                    </div>
+                `, {
+                    className: 'custom-popup'
+                });
+
+            // Open de popup direct
+            marker.openPopup();
+
+            // Pas kaartweergave aan
+            this.map.fitBounds(mainPath.getBounds(), { padding: [50, 50] });
+
+        } catch (error) {
+            console.error('Error updating map:', error);
+            
+            // Fallback naar rechte lijn
+            const endLng = startLng + (totalDistance / 111);
+            const pathLine = L.polyline([
+                [startLat, startLng],
+                [startLat, endLng]
+            ], {
+                color: '#3B82F6',
+                weight: 4,
+                opacity: 0.8
+            }).addTo(this.map);
+
+            L.marker([startLat, endLng])
+                .addTo(this.map)
+                .bindPopup(`
+                    <div class="text-center">
+                        <strong>Huidige positie</strong><br>
+                        ${totalDistance.toFixed(1)} km vanaf start
+                    </div>
+                `);
+
+            this.map.fitBounds(pathLine.getBounds(), { padding: [50, 50] });
         }
-    });
-
-    try {
-        // Haal route coördinaten op
-        const routeCoords = await getRouteCoordinates(startLat, startLng, totalDistance);
-        
-        // Teken de route
-        const mainPath = L.polyline(routeCoords, {
-            color: '#3B82F6', // Tailwind blue-500
-            weight: 4,
-            opacity: 0.8,
-            lineCap: 'round'
-        }).addTo(this.map);
-
-        // Voeg eindpunt marker toe
-        const endPoint = routeCoords[routeCoords.length - 1];
-        const marker = L.marker(endPoint)
-            .addTo(this.map)
-            .bindPopup(`
-                <div class="text-center">
-                    <strong>Huidige positie</strong><br>
-                    ${totalDistance.toFixed(1)} km vanaf start
-                </div>
-            `, {
-                className: 'custom-popup'
-            });
-
-        // Open de popup direct
-        marker.openPopup();
-
-        // Pas kaartweergave aan
-        this.map.fitBounds(mainPath.getBounds(), { padding: [50, 50] });
-
-    } catch (error) {
-        console.error('Error updating map:', error);
-        
-        // Fallback naar rechte lijn
-        const endLng = startLng + (totalDistance / 111);
-        const pathLine = L.polyline([
-            [startLat, startLng],
-            [startLat, endLng]
-        ], {
-            color: '#3B82F6',
-            weight: 4,
-            opacity: 0.8
-        }).addTo(this.map);
-
-        L.marker([startLat, endLng])
-            .addTo(this.map)
-            .bindPopup(`
-                <div class="text-center">
-                    <strong>Huidige positie</strong><br>
-                    ${totalDistance.toFixed(1)} km vanaf start
-                </div>
-            `);
-
-        this.map.fitBounds(pathLine.getBounds(), { padding: [50, 50] });
     }
-}
+
+    
     handleDateClick(info, project) {
         const modal = document.getElementById('walk-modal');
         const dateInput = document.getElementById('walk-date');
