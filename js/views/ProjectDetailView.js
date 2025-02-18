@@ -22,40 +22,37 @@ export class ProjectDetailView extends View {
       const endLng = startLng + (distanceInDegrees * Math.sin(angleInRadians));
       
       // GraphHopper API configuratie
-      const { apiKey, baseUrl } = config.graphhopper;
-      const params = new URLSearchParams({
-        key: apiKey,
-        profile: 'foot', // Specifiek voor wandelen
-        points_encoded: false,
-        details: 'street_name',
-        instructions: true,
-        calc_points: true,
-        point: [
-          `${startLat},${startLng}`,
-          `${endLat},${endLng}`
-        ],
-        elevation: true,
-        optimize: true,
-        instructions: true,
-        locale: 'nl'
-      });
-
-      // GraphHopper API aanroepen
-      const response = await fetch(`${baseUrl}/route?${params}`);
-      const data = await response.json();
+      const { apiKey } = config.graphhopper;
       
-      if (data.paths && data.paths.length > 0) {
-        // GraphHopper geeft al de coördinaten in het juiste formaat [lat, lng]
-        return data.paths[0].points.coordinates;
+      // Bouw de URL op
+      const url = `https://graphhopper.com/api/1/route?vehicle=foot&locale=nl&key=${apiKey}&point=${startLat},${startLng}&point=${endLat},${endLng}&points_encoded=false&instructions=true&elevation=true`;
+
+      console.log('Requesting route from GraphHopper:', url);
+      
+      // GraphHopper API aanroepen
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        throw new Error(`GraphHopper API error: ${response.status} ${response.statusText}`);
       }
       
-      throw new Error('Geen route gevonden');
+      const data = await response.json();
+      console.log('GraphHopper response:', data);
+      
+      if (data.paths && data.paths.length > 0) {
+        // GraphHopper geeft coordinates als [longitude, latitude]
+        // We moeten ze omdraaien naar [latitude, longitude] voor Leaflet
+        return data.paths[0].points.coordinates.map(coord => [coord[1], coord[0]]);
+      }
+      
+      throw new Error('Geen route gevonden in GraphHopper response');
     } catch (error) {
       console.error('Error getting route:', error);
-      // Fallback naar rechte lijn
+      // Fallback naar rechte lijn met wat variatie
+      const jitter = (Math.random() - 0.5) * 0.01; // Kleine random variatie
       return [
         [startLat, startLng],
-        [startLat, startLng + (distance / 111)]
+        [startLat + jitter, startLng + (distance / 111)]
       ];
     }
   }
