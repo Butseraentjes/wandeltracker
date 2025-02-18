@@ -227,10 +227,6 @@ export async function getCurrentUser() {
     });
 }
 
-export { db, auth };
-
-// In firebase.js, voeg deze nieuwe functie toe:
-
 export async function updateProjectGoal(projectId, goalData) {
     try {
         const user = auth.currentUser;
@@ -248,4 +244,5 @@ export async function updateProjectGoal(projectId, goalData) {
     }
 }
 
-
+// Laatste export regel
+export { db, auth };
