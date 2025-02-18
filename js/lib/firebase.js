@@ -153,7 +153,7 @@ export function subscribeToProject(projectId, callback) {
 
     return db.collection("projects").doc(projectId)
         .onSnapshot((doc) => {
-            if (doc.exists() && doc.data().userId === user.uid) {
+            if (doc.exists && doc.data().userId === user.uid) {
                 const projectData = {
                     id: doc.id,
                     ...doc.data()
