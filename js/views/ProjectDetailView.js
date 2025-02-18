@@ -15,8 +15,11 @@ export class ProjectDetailView extends View {
   // Helper functie voor het ophalen van route coördinaten via GraphHopper
   async getRouteCoordinates(startLat, startLng, distance) {
     try {
-      // Bereken eindpunt op ongeveer de juiste afstand
-      const endLng = startLng + (distance / 111);
+      // Bereken eindpunten in verschillende richtingen
+      const angleInRadians = Math.random() * 2 * Math.PI;
+      const distanceInDegrees = distance / 111;
+      const endLat = startLat + (distanceInDegrees * Math.cos(angleInRadians));
+      const endLng = startLng + (distanceInDegrees * Math.sin(angleInRadians));
       
       // GraphHopper API configuratie
       const { apiKey, baseUrl } = config.graphhopper;
@@ -29,8 +32,12 @@ export class ProjectDetailView extends View {
         calc_points: true,
         point: [
           `${startLat},${startLng}`,
-          `${startLat},${endLng}`
-        ]
+          `${endLat},${endLng}`
+        ],
+        elevation: true,
+        optimize: true,
+        instructions: true,
+        locale: 'nl'
       });
 
       // GraphHopper API aanroepen
@@ -213,9 +220,9 @@ export class ProjectDetailView extends View {
     const mapDiv = document.getElementById('map');
     if (!mapDiv || this.map) return;
 
-    // Voorlopig gebruiken we vaste coördinaten voor Lebbeke
-    const defaultLat = 50.9953;
-    const defaultLng = 4.1277;
+    // Gebruik de coördinaten voor Bremenhulleken 1, Lebbeke
+    const defaultLat = 50.981728;
+    const defaultLng = 4.127903;
 
     // Initialiseer de kaart
     this.map = L.map('map').setView([defaultLat, defaultLng], 13);
