@@ -221,6 +221,32 @@ export class ProjectDetailView extends View {
             .bindPopup(`Startlocatie: ${project.location.street} ${project.location.number}, ${project.location.postalCode} ${project.location.city}`);
     }
 
+    // In ProjectDetailView.js, voeg deze helper functie toe:
+async function getRouteCoordinates(startLat, startLng, distance) {
+    try {
+        // Bereken eindpunt op ongeveer de juiste afstand (eerst een ruwe schatting)
+        const endLng = startLng + (distance / 111);
+        
+        // OSRM routing API aanroepen
+        const response = await fetch(`https://router.project-osrm.org/route/v1/foot/${startLng},${startLat};${endLng},${startLat}?overview=full&geometries=geojson`);
+        const data = await response.json();
+        
+        if (data.routes && data.routes[0]) {
+            return data.routes[0].geometry.coordinates.map(coord => [coord[1], coord[0]]);
+        }
+        
+        throw new Error('Geen route gevonden');
+    } catch (error) {
+        console.error('Error getting route:', error);
+        // Fallback naar rechte lijn
+        return [
+            [startLat, startLng],
+            [startLat, startLng + (distance / 111)]
+        ];
+    }
+}
+    
+// Update de updateMapPath functie:
 async updateMapPath(project, totalDistance) {
     if (!this.map) return;
 
@@ -235,23 +261,20 @@ async updateMapPath(project, totalDistance) {
     });
 
     try {
-        // Teken directe lijn voor de totale afstand
-        const endLng = startLng + (totalDistance / 111); // Ruwe benadering: 1 lengtegraad ≈ 111 km
+        // Haal route coördinaten op
+        const routeCoords = await getRouteCoordinates(startLat, startLng, totalDistance);
         
-        const mainPath = L.polyline([
-            [startLat, startLng],
-            [startLat, endLng]
-        ], {
+        // Teken de route
+        const mainPath = L.polyline(routeCoords, {
             color: '#3B82F6', // Tailwind blue-500
             weight: 4,
             opacity: 0.8,
-            // Voeg een subtiel effect toe
-            dashArray: '10, 5',
             lineCap: 'round'
         }).addTo(this.map);
 
-        // Voeg eindpunt marker toe met mooiere popup
-        const marker = L.marker([startLat, endLng])
+        // Voeg eindpunt marker toe
+        const endPoint = routeCoords[routeCoords.length - 1];
+        const marker = L.marker(endPoint)
             .addTo(this.map)
             .bindPopup(`
                 <div class="text-center">
@@ -265,14 +288,35 @@ async updateMapPath(project, totalDistance) {
         // Open de popup direct
         marker.openPopup();
 
-        // Pas kaartweergave aan met wat meer padding
+        // Pas kaartweergave aan
         this.map.fitBounds(mainPath.getBounds(), { padding: [50, 50] });
 
     } catch (error) {
         console.error('Error updating map:', error);
+        
+        // Fallback naar rechte lijn
+        const endLng = startLng + (totalDistance / 111);
+        const pathLine = L.polyline([
+            [startLat, startLng],
+            [startLat, endLng]
+        ], {
+            color: '#3B82F6',
+            weight: 4,
+            opacity: 0.8
+        }).addTo(this.map);
+
+        L.marker([startLat, endLng])
+            .addTo(this.map)
+            .bindPopup(`
+                <div class="text-center">
+                    <strong>Huidige positie</strong><br>
+                    ${totalDistance.toFixed(1)} km vanaf start
+                </div>
+            `);
+
+        this.map.fitBounds(pathLine.getBounds(), { padding: [50, 50] });
     }
 }
-
     handleDateClick(info, project) {
         const modal = document.getElementById('walk-modal');
         const dateInput = document.getElementById('walk-date');
