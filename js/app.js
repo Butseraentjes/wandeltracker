@@ -160,7 +160,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         postalCode: document.getElementById('project-postal').value,
                         city: document.getElementById('project-city').value
                     },
-                    description: document.getElementById('project-description').value
+                    description: document.getElementById('project-description').value,
+                    destination: document.getElementById('project-destination').value // Nieuw veld voor bestemming
                 };
 
                 await createProject(projectData);
@@ -169,7 +170,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 
             } catch (error) {
                 console.error('Error creating project:', error);
-                alert('Er is iets misgegaan bij het aanmaken van het project. Probeer het opnieuw.');
+                if (error.message === "Kon de opgegeven bestemming niet vinden") {
+                    alert('De opgegeven bestemming kon niet worden gevonden. Controleer de spelling en probeer het opnieuw.');
+                } else {
+                    alert('Er is iets misgegaan bij het aanmaken van het project. Probeer het opnieuw.');
+                }
             } finally {
                 document.getElementById('loading-spinner').classList.add('hidden');
             }
