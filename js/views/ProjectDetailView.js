@@ -1,29 +1,20 @@
 import { subscribeToProject, saveWalk, subscribeToWalks } from '../lib/firebase.js';
 import { View } from '../lib/router.js';
 
-// Voeg deze functie toe aan het begin van je file, net na de imports:
-
 // Helper functie voor het ophalen van wandelpaden
-async function getWalkingPaths(startLat, startLng, bearing = 90) { // bearing 90 = oosten
-    // Zoekgebied definiëren (rechthoek richting het oosten)
-    const radius = 0.1; // ongeveer 11km
-    const bbox = `${startLat - radius},${startLng},${startLat + radius},${startLng + radius * 2}`;
-    
-    // Overpass query voor wandelpaden
-    const query = `
-        [out:json][timeout:25];
-        (
-            way["highway"="footway"](${bbox});
-            way["highway"="path"](${bbox});
-            way["highway"="pedestrian"](${bbox});
-            way["highway"="track"](${bbox});
-        );
-        out body;
-        >;
-        out skel qt;
-    `;
-
+async function getWalkingPaths(startLat, startLng, bearing = 90) {
     try {
+        // Kleiner zoekgebied
+        const radius = 0.05; // ~5km
+        const bbox = `${startLat - radius},${startLng},${startLat + radius},${startLng + radius}`;
+        
+        // Vereenvoudigde query
+        const query = `
+            [out:json][timeout:25];
+            way["highway"="footway"](${bbox});
+            out body geom;
+        `;
+
         const response = await fetch('https://overpass-api.de/api/interpreter', {
             method: 'POST',
             body: query
@@ -230,107 +221,74 @@ export class ProjectDetailView extends View {
             .bindPopup(`Startlocatie: ${project.location.street} ${project.location.number}, ${project.location.postalCode} ${project.location.city}`);
     }
 
-async updateMapPath(project, totalDistance) {
-    if (!this.map) return;
+    async updateMapPath(project, totalDistance) {
+        if (!this.map) return;
 
-    const startLat = 50.9953;
-    const startLng = 4.1277;
+        const startLat = 50.9953;
+        const startLng = 4.1277;
 
-    // Verwijder bestaande paden
-    this.map.eachLayer((layer) => {
-        if (layer instanceof L.Polyline) {
-            this.map.removeLayer(layer);
-        }
-    });
-
-    // Haal wandelpaden op
-    const paths = await getWalkingPaths(startLat, startLng);
-    
-    // Filter en verbind de paden
-    let currentLat = startLat;
-    let currentLng = startLng;
-    let remainingDistance = totalDistance;
-    let pathCoordinates = [[startLat, startLng]];
-
-    // Sorteer paden op afstand tot het huidige punt
-    const processedPaths = new Set();
-    
-    while (remainingDistance > 0 && paths.length > 0) {
-        // Vind het meest oostelijke pad dat aansluit
-        let bestPath = null;
-        let bestDistance = Infinity;
-        let bestStartIndex = 0;
-
-        for (const path of paths) {
-            if (processedPaths.has(path.id)) continue;
-            
-            if (path.type === 'way' && path.nodes) {
-                const coordinates = path.nodes.map(nodeId => {
-                    const node = paths.find(n => n.type === 'node' && n.id === nodeId);
-                    return node ? [node.lat, node.lon] : null;
-                }).filter(Boolean);
-
-                if (coordinates.length < 2) continue;
-
-                // Check afstand tot het huidige punt
-                const startDist = L.latLng(currentLat, currentLng)
-                    .distanceTo(L.latLng(coordinates[0][0], coordinates[0][1]));
-                const endDist = L.latLng(currentLat, currentLng)
-                    .distanceTo(L.latLng(coordinates[coordinates.length-1][0], coordinates[coordinates.length-1][1]));
-
-                if (startDist < bestDistance && coordinates[coordinates.length-1][1] > currentLng) {
-                    bestDistance = startDist;
-                    bestPath = coordinates;
-                    bestStartIndex = 0;
-                }
-                if (endDist < bestDistance && coordinates[0][1] > currentLng) {
-                    bestDistance = endDist;
-                    bestPath = coordinates.slice().reverse();
-                    bestStartIndex = 0;
-                }
+        // Verwijder bestaande paden
+        this.map.eachLayer((layer) => {
+            if (layer instanceof L.Polyline || (layer instanceof L.Marker && layer._popup?.getContent().includes('Huidige positie'))) {
+                this.map.removeLayer(layer);
             }
-        }
+        });
 
-        if (bestPath) {
-            // Voeg pad toe aan onze route
-            pathCoordinates.push(...bestPath.slice(bestStartIndex));
+        try {
+            // Haal wandelpaden op
+            const paths = await getWalkingPaths(startLat, startLng);
             
-            // Update huidige positie
-            const lastPoint = bestPath[bestPath.length - 1];
-            currentLat = lastPoint[0];
-            currentLng = lastPoint[1];
+            // Teken alle gevonden paden
+            paths.forEach(path => {
+                if (path.geometry) {
+                    const coordinates = path.geometry.map(point => [point.lat, point.lon]);
+                    L.polyline(coordinates, {
+                        color: 'gray',
+                        weight: 2,
+                        opacity: 0.5
+                    }).addTo(this.map);
+                }
+            });
 
-            // Update resterende afstand
-            const pathLength = L.polyline(bestPath).getLatLngs()
-                .reduce((acc, curr, idx, arr) => {
-                    if (idx === 0) return acc;
-                    return acc + curr.distanceTo(arr[idx-1]);
-                }, 0) / 1000; // Convert to km
+            // Teken directe lijn voor de totale afstand
+            const endLng = startLng + (totalDistance / 111); // Ruwe benadering: 1 lengtegraad ≈ 111 km
+            
+            const mainPath = L.polyline([
+                [startLat, startLng],
+                [startLat, endLng]
+            ], {
+                color: 'blue',
+                weight: 3
+            }).addTo(this.map);
 
-            remainingDistance -= pathLength;
-        } else {
-            // Als geen pad gevonden, ga rechtdoor
-            currentLng += remainingDistance / 111;
-            pathCoordinates.push([currentLat, currentLng]);
-            break;
+            // Voeg eindpunt marker toe
+            L.marker([startLat, endLng])
+                .addTo(this.map)
+                .bindPopup(`Huidige positie: ${totalDistance.toFixed(1)} km vanaf start`);
+
+            // Pas kaartweergave aan
+            this.map.fitBounds(mainPath.getBounds(), { padding: [50, 50] });
+
+        } catch (error) {
+            console.error('Error updating map:', error);
+            
+            // Fallback: teken alleen een rechte lijn
+            const endLng = startLng + (totalDistance / 111);
+            const pathLine = L.polyline([
+                [startLat, startLng],
+                [startLat, endLng]
+            ], {
+                color: 'blue',
+                weight: 3
+            }).addTo(this.map);
+
+            L.marker([startLat, endLng])
+                .addTo(this.map)
+                .bindPopup(`Huidige positie: ${totalDistance.toFixed(1)} km vanaf start`);
+
+            this.map.fitBounds(pathLine.getBounds(), { padding: [50, 50] });
         }
     }
-
-    // Teken het pad
-    const pathLine = L.polyline(pathCoordinates, {
-        color: 'blue',
-        weight: 3
-    }).addTo(this.map);
-
-    // Voeg eindpunt marker toe
-    const lastPoint = pathCoordinates[pathCoordinates.length - 1];
-    L.marker(lastPoint)
-        .addTo(this.map)
-        .bindPopup(`Huidige positie: ${totalDistance.toFixed(1)} km vanaf start`);
-
-    // Pas kaartweergave aan
-    this.map.fitBounds(pathLine.getBounds(), { padding: [50, 50] });
-}
 
     handleDateClick(info, project) {
         const modal = document.getElementById('walk-modal');
