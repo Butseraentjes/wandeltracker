@@ -4,7 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WandelTracker</title>
+    
+    <!-- Styles -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="css/styles.css">
+    <link href='https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/main.min.css' rel='stylesheet' />
 </head>
 <body>
     <!-- Loading Indicator -->
@@ -28,15 +32,8 @@
     </header>
 
     <!-- Login Container -->
-    <div id="login-container" class="container">
-        <div class="login-box">
-            <h2>Welkom bij WandelTracker</h2>
-            <p>Houd je wandelingen bij en zie hoever je al gekomen bent!</p>
-            <button id="google-login-btn" class="google-btn">
-                <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMjEuODU2NSAxMC4yMzA4SDIxVjEwLjJIMTJWMTMuOEgyMS44NDE1QzIxLjI5MDUgMTYuMDYyNyAxOS43ODY1IDE3Ljk1NTUgMTcuNzg3NSAxOS4wMTA3TDE3LjgwMzUgMTkuMDAyNEwyMS41NjQ1IDIxLjg3MjRDMjEuMjg1NSAyMi4xMjU0IDIzLjQgMjAuNCAyMy40IDEyLjJDMjMuNCAxMS40NCAyMy4yODYgMTAuODA4IDIxLjg1NjUgMTAuMjMwOFoiIGZpbGw9IiM0Mjg1RjQiPjwvcGF0aD48cGF0aCBkPSJNMTcuODAzNSAxOS4wMDI0TDE3Ljc4NzUgMTkuMDEwN0MxNS45MzE1IDE5Ljk1NDcgMTMuNzQzNSAyMC4yNSAxMiAyMC4yNUM3LjQyNzUgMjAuMjUgMy40Nzg1IDE4LjA5NyAxLjk2MzUgMTQuOEw1Ljk0NDUgMTEuNjc4QzcuMDcxNSAxNC40MTg3IDkuMzMzNSAxNi40IDEyIDE2LjRDMTMuMzU2NSAxNi40IDE0LjYxNjUgMTUuOTc4NyAxNS42NzM1IDE1LjI0TDE1LjY4MjUgMTUuMjQ0TDE3LjgwMzUgMTkuMDAyNFoiIGZpbGw9IiMzNEE4NTMiPjwvcGF0aD48cGF0aCBkPSJNNS45NDQ1IDExLjY3OEw1LjkyODUgMTEuNjg2M0wxLjk2MzUgMTQuOEMxLjc2MjUgMTQuMjg5MyAxLjYgMTMuNzU0NyAxLjYgMTMuMkMxLjYgMTEuOTQ1MyAyLjAxNzUgMTAuNzc4IDIuNzUyNSA5LjgxNDY3TDUuOTQ0NSAxMS42NzhaIiBmaWxsPSIjRkJCQzA1Ij48L3BhdGg+PHBhdGggZD0iTTEyIDguOEM5LjMzMzUgOC44IDcuMDcxNSAxMC43ODEzIDUuOTQ0NSAxMy41MjJMMi43NTI1IDExLjY1ODdDNC4yNjc1IDguMzYxMzMgNy40Mjc1IDYuMiAxMiA2LjJDMTMuNzQzNSA2LjIgMTUuOTMxNSA2LjQ5NTMzIDE3Ljc4NzUgNy40Mzg2N0wyMS41NjQ1IDQuNTI3MzNDMTkuMjE5NSAyLjUwNzMzIDE1LjgwMzUgMS42IDEyIDEuNkM1LjM3MzUgMS42IDAgNi45NzMzMyAwIDEzLjZDMCAyMC4yMjY3IDUuMzczNSAyNS42IDEyIDI1LjZDMTUuODAzNSAyNS42IDE5LjIxOTUgMjQuNjkyNyAyMS41NjQ1IDIyLjY3MjdDMjMuOTA5NSAyMC42NTI3IDI1LjIgMTcuNjQgMjUuMiAxMy45MkMyNS4yIDEzLjY4OTMgMjUuMiAxMy40NTg3IDI1LjE4NjUgMTMuMjI4QzI1LjE4NjUgMTMuMjE0NyAyNS4xODY1IDEzLjIwMTMgMjUuMTg2NSAxMy4xODhDMjUuMTczNSAxMi45NzA3IDI1LjE2IDE4LjY2OCAyNS4xMzM1IDEyLjUzMzNMMjEuODU2NSAxMC4yMzA3QzIxLjI5MDUgMTYuMDYyNyAxOS43ODY1IDE3Ljk1NTMgMTcuNzg3NSAxOS4wMTA3TDE3LjgwMzUgMTkuMDAyNEwxNS42ODI1IDE1LjI0NEMxNi43MzQ1IDE0LjUwOTMgMTcuNDI4NSAxMy40MDQgMTcuNzM1NSAxMi4xNDhIMTJWOC44WiIgZmlsbD0iI0VBNDMzNSI+PC9wYXRoPjwvc3ZnPg==" alt="Google Logo">
-                Inloggen met Google
-            </button>
-        </div>
+    <div id="login-container" class="w-full">
+        <!-- Homepage component wordt hier gemount -->
     </div>
 
     <!-- Main Content -->
@@ -85,6 +82,30 @@
         </div>
     </div>
 
+    <!-- Walk Modal -->
+    <div id="walk-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Wandeling Toevoegen</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <form id="walk-form">
+                <div class="form-group">
+                    <label for="walk-date">Datum</label>
+                    <input type="text" id="walk-date" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="walk-distance">Aantal kilometers</label>
+                    <input type="number" id="walk-distance" step="0.1" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="secondary-btn" id="cancel-walk">Annuleren</button>
+                    <button type="submit" class="primary-btn">Opslaan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Footer -->
     <footer>
         <div class="footer-content">
@@ -92,53 +113,24 @@
         </div>
     </footer>
 
-<!-- Externe libraries -->
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <!-- Externe libraries -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
 
-<!-- FullCalendar scripts -->
-<script src='https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/index.global.min.js'></script>
-<script src='https://cdn.jsdelivr.net/npm/@fullcalendar/web-component@6.1.10/index.global.min.js'></script>
-<script src='https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.10/index.global.min.js'></script>
-<script src='https://cdn.jsdelivr.net/npm/@fullcalendar/interaction@6.1.10/index.global.min.js'></script>
+    <!-- FullCalendar scripts -->
+    <script src='https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/index.global.min.js'></script>
+    <script src='https://cdn.jsdelivr.net/npm/@fullcalendar/web-component@6.1.10/index.global.min.js'></script>
+    <script src='https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.10/index.global.min.js'></script>
+    <script src='https://cdn.jsdelivr.net/npm/@fullcalendar/interaction@6.1.10/index.global.min.js'></script>
 
-<!-- FullCalendar CSS -->
-<link href='https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/main.min.css' rel='stylesheet' />
-
-<!-- Applicatie scripts (allemaal als modules) -->
-<script type="module" src="js/lib/firebase.js"></script>
-<script type="module" src="js/components/ProjectList.js"></script>
-<script type="module" src="js/app.js"></script>
-
-<!-- Styles -->
-<link href='https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/main.min.css' rel='stylesheet' />
-
-<!-- Voeg dit toe voor de closing body tag -->
-<div id="walk-modal" class="modal hidden">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3>Wandeling Toevoegen</h3>
-            <button class="close-modal">&times;</button>
-        </div>
-        <form id="walk-form">
-            <div class="form-group">
-                <label for="walk-date">Datum</label>
-                <input type="text" id="walk-date" readonly>
-            </div>
-            <div class="form-group">
-                <label for="walk-distance">Aantal kilometers</label>
-                <input type="number" id="walk-distance" step="0.1" required>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="secondary-btn" id="cancel-walk">Annuleren</button>
-                <button type="submit" class="primary-btn">Opslaan</button>
-            </div>
-        </form>
-    </div>
-</div>
-    
+    <!-- Applicatie scripts -->
+    <script type="module" src="js/lib/firebase.js"></script>
+    <script type="module" src="js/components/Homepage.js"></script>
+    <script type="module" src="js/components/ProjectList.js"></script>
+    <script type="module" src="js/app.js"></script>
 </body>
 </html>
