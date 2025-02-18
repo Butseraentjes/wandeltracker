@@ -114,10 +114,17 @@ header.innerHTML = `
             </p>
             ${project.description ? `<p class="mt-2">${project.description}</p>` : ''}
             <div class="mt-4">
-                ${project.goal 
-                    ? `<p class="text-green-600">Doel: ${project.goal.city}</p>`
-                    : `<button id="add-goal-btn" class="text-blue-600 hover:text-blue-800">+ Voeg doel toe</button>`
-                }
+ ${project.goal 
+    ? `<div class="flex items-center gap-2">
+         <p class="text-green-600">Doel: ${project.goal.city}</p>
+         <button id="edit-goal-btn" class="text-blue-600 hover:text-blue-800 text-sm">
+           Bewerken
+         </button>
+       </div>`
+    : `<button id="add-goal-btn" class="text-blue-600 hover:text-blue-800">
+         + Voeg doel toe
+       </button>`
+}
             </div>
         </div>
         <a href="/" data-route="/" class="text-blue-600 hover:text-blue-800">
@@ -129,13 +136,24 @@ header.innerHTML = `
                 }
 
                 // Goal button event listeners
-                const addGoalBtn = document.getElementById('add-goal-btn');
-                if (addGoalBtn) {
-                    addGoalBtn.addEventListener('click', () => {
-                        const modal = document.getElementById('goal-modal');
-                        modal.classList.remove('hidden');
-                    });
-                }
+const addGoalBtn = document.getElementById('add-goal-btn');
+const editGoalBtn = document.getElementById('edit-goal-btn');
+
+if (addGoalBtn) {
+    addGoalBtn.addEventListener('click', () => {
+        const modal = document.getElementById('goal-modal');
+        modal.classList.remove('hidden');
+    });
+}
+
+if (editGoalBtn) {
+    editGoalBtn.addEventListener('click', () => {
+        const modal = document.getElementById('goal-modal');
+        const cityInput = document.getElementById('goal-city');
+        cityInput.value = project.goal.city; // Vul huidige stad in
+        modal.classList.remove('hidden');
+    });
+}
 
                 // Goal modal event listeners
                 const goalForm = document.getElementById('goal-form');
