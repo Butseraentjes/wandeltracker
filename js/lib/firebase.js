@@ -247,3 +247,22 @@ export async function updateProjectGoal(projectId, goalData) {
         throw error;
     }
 }
+
+// In firebase.js, voeg deze nieuwe functie toe aan de bestaande exports:
+
+export async function updateProjectGoal(projectId, goalData) {
+    try {
+        const user = auth.currentUser;
+        if (!user) throw new Error("Geen gebruiker ingelogd");
+
+        await db.collection("projects").doc(projectId).update({
+            goal: goalData,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        return true;
+    } catch (error) {
+        console.error("Error updating project goal:", error);
+        throw error;
+    }
+}
