@@ -1,10 +1,11 @@
-import { subscribeToProject, saveWalk } from '../lib/firebase.js';
+import { subscribeToProject, saveWalk, subscribeToWalks } from '../lib/firebase.js';
 import { View } from '../lib/router.js';
 
 export class ProjectDetailView extends View {
     constructor() {
         super();
-        this.unsubscribe = null;
+        this.unsubscribeProject = null;
+        this.unsubscribeWalks = null;
         this.calendar = null;
     }
 
@@ -48,7 +49,7 @@ export class ProjectDetailView extends View {
             `;
 
             // Project data ophalen en weergeven
-            this.unsubscribe = subscribeToProject(projectId, (project) => {
+            this.unsubscribeProject = subscribeToProject(projectId, (project) => {
                 if (!project) {
                     mainContent.innerHTML = `
                         <div class="error-container">
@@ -80,6 +81,27 @@ export class ProjectDetailView extends View {
 
                 // Initialiseer kalender
                 this.initializeCalendar(project);
+                
+                // Subscribe naar wandelingen
+                if (this.unsubscribeWalks) {
+                    this.unsubscribeWalks();
+                }
+                
+                this.unsubscribeWalks = subscribeToWalks(projectId, (walks) => {
+                    // Convert walks naar FullCalendar events
+                    const events = walks.map(walk => ({
+                        title: `${walk.distance} km`,
+                        start: walk.date,
+                        display: 'block',
+                        backgroundColor: '#3B82F6', // Tailwind blue-500
+                    }));
+                    
+                    // Update calendar events
+                    if (this.calendar) {
+                        this.calendar.removeAllEvents();
+                        this.calendar.addEventSource(events);
+                    }
+                });
             });
 
         } catch (error) {
@@ -116,6 +138,15 @@ export class ProjectDetailView extends View {
         });
 
         this.calendar.render();
+
+        // Voeg click event toe aan de "Nieuwe wandeling" knop
+        const addWalkBtn = document.getElementById('add-walk-btn');
+        if (addWalkBtn) {
+            addWalkBtn.addEventListener('click', () => {
+                const today = new Date().toISOString().split('T')[0];
+                this.handleDateClick({ dateStr: today }, project);
+            });
+        }
     }
 
     handleDateClick(info, project) {
@@ -149,8 +180,6 @@ export class ProjectDetailView extends View {
                 await saveWalk(project.id, walkData);
                 modal.classList.add('hidden');
                 
-                // Hier kunnen we later de kalenderweergave updaten
-                
             } catch (error) {
                 console.error('Error saving walk:', error);
                 alert('Er is iets misgegaan bij het opslaan van de wandeling. Probeer het opnieuw.');
@@ -163,20 +192,29 @@ export class ProjectDetailView extends View {
         const handleClose = () => {
             modal.classList.add('hidden');
             form.removeEventListener('submit', handleSubmit);
+            closeBtn.removeEventListener('click', handleClose);
+            cancelBtn.removeEventListener('click', handleClose);
+            modal.removeEventListener('click', handleModalClick);
+        };
+
+        // Handle modal background click
+        const handleModalClick = (e) => {
+            if (e.target === modal) handleClose();
         };
 
         // Add event listeners
         form.addEventListener('submit', handleSubmit);
         closeBtn.addEventListener('click', handleClose);
         cancelBtn.addEventListener('click', handleClose);
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) handleClose();
-        });
+        modal.addEventListener('click', handleModalClick);
     }
 
     async cleanup() {
-        if (this.unsubscribe) {
-            this.unsubscribe();
+        if (this.unsubscribeProject) {
+            this.unsubscribeProject();
+        }
+        if (this.unsubscribeWalks) {
+            this.unsubscribeWalks();
         }
         if (this.calendar) {
             this.calendar.destroy();
@@ -184,4 +222,3 @@ export class ProjectDetailView extends View {
         }
     }
 }
-
