@@ -1,4 +1,5 @@
-// Homepage.js
+import { loginWithGoogle } from '../lib/firebase.js';
+
 const Homepage = () => {
   const handleLoginClick = async () => {
     try {
@@ -62,6 +63,94 @@ const Homepage = () => {
             React.createElement('h3', { className: 'text-lg font-semibold mb-2' }, 'Wandel samen'),
             React.createElement('p', { className: 'text-gray-600' },
               'Nodig vrienden uit en motiveer elkaar om meer te bewegen.'
+            )
+          )
+        )
+      )
+    ),
+
+    // How it Works Section
+    React.createElement('section', { className: 'py-20 bg-gray-50' },
+      React.createElement('div', { className: 'max-w-6xl mx-auto px-4' },
+        React.createElement('h2', { className: 'text-3xl font-bold text-center mb-16' }, 'Hoe het werkt'),
+        React.createElement('div', { className: 'grid md:grid-cols-4 gap-8' },
+          // Step 1
+          React.createElement('div', { className: 'text-center' },
+            React.createElement('div', { className: 'bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4' },
+              React.createElement('span', { className: 'text-2xl font-bold text-blue-600' }, '1')
+            ),
+            React.createElement('h3', { className: 'font-semibold mb-2' }, 'Maak een account'),
+            React.createElement('p', { className: 'text-gray-600' }, 'Begin met een gratis account')
+          ),
+          // Step 2
+          React.createElement('div', { className: 'text-center' },
+            React.createElement('div', { className: 'bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4' },
+              React.createElement('span', { className: 'text-2xl font-bold text-blue-600' }, '2')
+            ),
+            React.createElement('h3', { className: 'font-semibold mb-2' }, 'Kies je startpunt'),
+            React.createElement('p', { className: 'text-gray-600' }, 'Voer je thuislocatie in')
+          ),
+          // Step 3
+          React.createElement('div', { className: 'text-center' },
+            React.createElement('div', { className: 'bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4' },
+              React.createElement('span', { className: 'text-2xl font-bold text-blue-600' }, '3')
+            ),
+            React.createElement('h3', { className: 'font-semibold mb-2' }, 'Log je wandelingen'),
+            React.createElement('p', { className: 'text-gray-600' }, 'Voeg dagelijks je kilometers toe')
+          ),
+          // Step 4
+          React.createElement('div', { className: 'text-center' },
+            React.createElement('div', { className: 'bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4' },
+              React.createElement('span', { className: 'text-2xl font-bold text-blue-600' }, '4')
+            ),
+            React.createElement('h3', { className: 'font-semibold mb-2' }, 'Ontdek je reis'),
+            React.createElement('p', { className: 'text-gray-600' }, 'Zie waar je zou zijn gekomen')
+          )
+        )
+      )
+    ),
+
+    // Success Stories Section
+    React.createElement('section', { className: 'py-20 bg-white' },
+      React.createElement('div', { className: 'max-w-6xl mx-auto px-4' },
+        React.createElement('h2', { className: 'text-3xl font-bold text-center mb-16' }, 'Verhalen van wandelaars'),
+        React.createElement('div', { className: 'grid md:grid-cols-2 gap-8' },
+          // Story 1
+          React.createElement('div', { className: 'bg-white p-6 rounded-xl shadow-lg' },
+            React.createElement('div', { className: 'flex items-start gap-4' },
+              React.createElement('img', { 
+                src: '/api/placeholder/64/64',
+                alt: 'User',
+                className: 'w-16 h-16 rounded-full'
+              }),
+              React.createElement('div', {},
+                React.createElement('h3', { className: 'font-semibold mb-2' }, 'Sarah uit Gent'),
+                React.createElement('p', { className: 'text-gray-600 mb-4' },
+                  '"Ik wandel elke dag tijdens mijn lunchpauze. Na 6 maanden ontdekte ik dat ik theoretisch in Stockholm zou zijn!"'
+                ),
+                React.createElement('div', { className: 'flex items-center gap-2 text-blue-600' },
+                  React.createElement('span', { className: 'text-sm' }, '👣 843 km afgelegd')
+                )
+              )
+            )
+          ),
+          // Story 2
+          React.createElement('div', { className: 'bg-white p-6 rounded-xl shadow-lg' },
+            React.createElement('div', { className: 'flex items-start gap-4' },
+              React.createElement('img', {
+                src: '/api/placeholder/64/64',
+                alt: 'User',
+                className: 'w-16 h-16 rounded-full'
+              }),
+              React.createElement('div', {},
+                React.createElement('h3', { className: 'font-semibold mb-2' }, 'Marc uit Brugge'),
+                React.createElement('p', { className: 'text-gray-600 mb-4' },
+                  '"Sinds ik met pensioen ben, wandel ik elke ochtend. Volgens de app ben ik nu ergens in Zuid-Frankrijk!"'
+                ),
+                React.createElement('div', { className: 'flex items-center gap-2 text-blue-600' },
+                  React.createElement('span', { className: 'text-sm' }, '👣 1247 km afgelegd')
+                )
+              )
             )
           )
         )
