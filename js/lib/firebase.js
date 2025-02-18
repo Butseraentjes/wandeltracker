@@ -228,4 +228,24 @@ export async function saveWalk(projectId, walkData) {
         console.error("Error saving walk:", error);
         throw error;
     }
+
+    // In firebase.js, voeg deze functie toe:
+
+export function subscribeToWalks(projectId, callback) {
+    const user = auth.currentUser;
+    if (!user) return null;
+
+    const walksRef = collection(db, "projects", projectId, "walks");
+    
+    return onSnapshot(walksRef, (snapshot) => {
+        const walks = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+        callback(walks);
+    }, (error) => {
+        console.error('Error fetching walks:', error);
+        callback([]);
+    });
+}
 }
