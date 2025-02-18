@@ -155,7 +155,7 @@ goalForm.addEventListener('submit', async (e) => {
         document.getElementById('loading-spinner').classList.remove('hidden');
         const city = document.getElementById('goal-city').value;
         
-        await updateProjectGoal(projectId, { city });
+        await updateProjectGoal(this.params.id, { city });
         hideGoalModal();
     } catch (error) {
         console.error('Error saving goal:', error);
