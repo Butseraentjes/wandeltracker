@@ -2,6 +2,8 @@
 const firebase = window.firebase;
 
 // Initialize Firebase
+console.log('Initializing Firebase...');
+const app = firebase.initializeApp({
 const app = firebase.initializeApp({
     apiKey: "AIzaSyAgT_uX_5RrP7CKiI5-KpBSUXvvT928qik",
     authDomain: "wandeltracker-3692d.firebaseapp.com",
