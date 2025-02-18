@@ -32,11 +32,16 @@ export class ProjectDetailView extends View {
                     </div>
                     <div class="project-content grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="calendar-section bg-white p-6 rounded-lg shadow">
-                            <div class="flex justify-between items-center mb-4">
-                                <h3 class="text-lg font-semibold">Wandelingen</h3>
-                                <button id="add-walk-btn" class="text-blue-600 hover:text-blue-800">
-                                    + Nieuwe wandeling
-                                </button>
+                            <div class="flex flex-col gap-4">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <h3 class="text-lg font-semibold">Wandelingen</h3>
+                                        <p id="total-distance" class="text-sm text-gray-600">Totale afstand wordt berekend...</p>
+                                    </div>
+                                    <button id="add-walk-btn" class="text-blue-600 hover:text-blue-800">
+                                        + Nieuwe wandeling
+                                    </button>
+                                </div>
                             </div>
                             <div id="calendar" class="fc"></div>
                         </div>
@@ -90,6 +95,15 @@ export class ProjectDetailView extends View {
                 }
                 
                 this.unsubscribeWalks = subscribeToWalks(projectId, (walks) => {
+                    // Bereken totale afstand
+                    const totalDistance = walks.reduce((total, walk) => total + (walk.distance || 0), 0);
+                    
+                    // Update totale afstand weergave
+                    const totalDistanceElement = document.getElementById('total-distance');
+                    if (totalDistanceElement) {
+                        totalDistanceElement.textContent = `Totale afstand: ${totalDistance.toFixed(1)} km`;
+                    }
+
                     // Convert walks naar FullCalendar events
                     const events = walks.map(walk => ({
                         title: `${walk.distance} km`,
