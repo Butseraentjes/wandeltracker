@@ -114,57 +114,26 @@ export class ProjectDetailView extends View {
                 }
 
                 const header = document.querySelector('.project-header');
-                if (header) {
-header.innerHTML = `
-    <div class="flex justify-between items-center">
-        <div>
-            <h2 class="text-2xl font-bold">${project.name}</h2>
-            <p class="text-gray-600">
-                ${project.location.street} ${project.location.number}, 
-                ${project.location.postalCode} ${project.location.city}
-            </p>
-            ${project.description ? `<p class="mt-2">${project.description}</p>` : ''}
-            <div class="mt-4">
- ${project.goal 
-    ? `<div class="flex items-center gap-2">
-         <p class="text-green-600">Doel: ${project.goal.city}</p>
-         <button id="edit-goal-btn" class="text-blue-600 hover:text-blue-800 text-sm">
-           Bewerken
-         </button>
-       </div>`
-    : `<button id="add-goal-btn" class="text-blue-600 hover:text-blue-800">
-         + Voeg doel toe
-       </button>`
-}
+if (header) {
+    header.innerHTML = `
+        <div class="flex justify-between items-center">
+            <div>
+                <h2 class="text-2xl font-bold">${project.name}</h2>
+                <p class="text-gray-600">
+                    ${project.location.street} ${project.location.number}, 
+                    ${project.location.postalCode} ${project.location.city}
+                </p>
+                ${project.description ? `<p class="mt-2">${project.description}</p>` : ''}
+                <div class="mt-4"></div>
             </div>
+            <a href="/" data-route="/" class="text-blue-600 hover:text-blue-800">
+                ← Terug naar projecten
+            </a>
         </div>
-        <a href="/" data-route="/" class="text-blue-600 hover:text-blue-800">
-            ← Terug naar projecten
-        </a>
-    </div>
-`;
-
-                }
-
-                // Goal button event listeners
-const addGoalBtn = document.getElementById('add-goal-btn');
-const editGoalBtn = document.getElementById('edit-goal-btn');
-
-if (addGoalBtn) {
-    addGoalBtn.addEventListener('click', () => {
-        const modal = document.getElementById('goal-modal');
-        modal.classList.remove('hidden');
-    });
+    `;
 }
 
-if (editGoalBtn) {
-    editGoalBtn.addEventListener('click', () => {
-        const modal = document.getElementById('goal-modal');
-        const cityInput = document.getElementById('goal-city');
-        cityInput.value = project.goal.city; // Vul huidige stad in
-        modal.classList.remove('hidden');
-    });
-}
+
 
                 // Goal modal event listeners
                 const goalForm = document.getElementById('goal-form');
@@ -496,7 +465,15 @@ goalForm.addEventListener('submit', async (e) => {
         const currentRoute = routes[this.currentRouteIndex] || routes[0];
         if (currentRoute) {
             // Bereken voortgang op deze route (dit is een eenvoudige simulatie)
-            const progress = Math.min(100, (totalKm / 300) * 100); // 300km als voorbeeld doel
+           // Bereken de echte afstand tussen start- en eindpunt
+const startLat = project.location.coordinates?.lat || 50.981728;
+const startLng = project.location.coordinates?.lng || 4.127903;
+const destLat = currentRoute.destination?.coordinates?.lat || 51.2194;
+const destLng = currentRoute.destination?.coordinates?.lng || 4.4025;
+
+// Bereken werkelijke afstand van de route
+const routeDistance = this.calculateDistance(startLat, startLng, destLat, destLng);
+const progress = Math.min(100, (totalKm / routeDistance) * 100);
 
             routesHTML += `
                 <div class="route-details mb-4">
@@ -530,7 +507,7 @@ goalForm.addEventListener('submit', async (e) => {
                         </div>
                         <div class="flex justify-between text-sm mt-1">
                             <span class="text-gray-600">Voortgang: ${progress.toFixed(1)}%</span>
-                            <span class="text-gray-600">${totalKm.toFixed(1)} / ~300 km</span>
+<span class="text-gray-600">${totalKm.toFixed(1)} / ${routeDistance.toFixed(1)} km</span>
                         </div>
                     </div>
                 </div>
