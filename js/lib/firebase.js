@@ -296,6 +296,3 @@ export async function createProjectWithGeocode(projectData) {
         throw error;
     }
 }
-
-
-
