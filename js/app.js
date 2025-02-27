@@ -160,12 +160,14 @@ if (projectForm) {
                     street: document.getElementById('project-street').value,
                     number: document.getElementById('project-number').value,
                     postalCode: document.getElementById('project-postal').value,
-                    city: document.getElementById('project-city').value
+                    city: document.getElementById('project-city').value,
+                    country: 'Belgium' // Default waarde
                 },
                 description: document.getElementById('project-description').value
             };
 
-            await createProject(projectData);
+            // Gebruik nieuwe functie met geocoding
+            await createProjectWithGeocode(projectData);
             hideModal();
             alert('Project succesvol aangemaakt!');
             
