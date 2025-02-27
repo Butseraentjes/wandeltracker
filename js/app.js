@@ -146,37 +146,40 @@ function hideModal() {
 // Setup event listeners
 document.addEventListener('DOMContentLoaded', () => {
     // Project form submission
-    const projectForm = document.getElementById('project-form');
-    if (projectForm) {
-        projectForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
+// In app.js waar project wordt aangemaakt
+const projectForm = document.getElementById('project-form');
+if (projectForm) {
+    projectForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        try {
+            document.getElementById('loading-spinner').classList.remove('hidden');
             
-            try {
-                document.getElementById('loading-spinner').classList.remove('hidden');
-                
-                const projectData = {
-                    name: document.getElementById('project-name').value,
-                    location: {
-                        street: document.getElementById('project-street').value,
-                        number: document.getElementById('project-number').value,
-                        postalCode: document.getElementById('project-postal').value,
-                        city: document.getElementById('project-city').value
-                    },
-                    description: document.getElementById('project-description').value
-                };
+            const projectData = {
+                name: document.getElementById('project-name').value,
+                location: {
+                    street: document.getElementById('project-street').value,
+                    number: document.getElementById('project-number').value,
+                    postalCode: document.getElementById('project-postal').value,
+                    city: document.getElementById('project-city').value,
+                    country: 'Belgium' // Default waarde
+                },
+                description: document.getElementById('project-description').value
+            };
 
-                await createProject(projectData);
-                hideModal();
-                alert('Project succesvol aangemaakt!');
-                
-            } catch (error) {
-                console.error('Error creating project:', error);
-                alert('Er is iets misgegaan bij het aanmaken van het project. Probeer het opnieuw.');
-            } finally {
-                document.getElementById('loading-spinner').classList.add('hidden');
-            }
-        });
-    }
+            // Gebruik nieuwe functie met geocoding
+            await createProjectWithGeocode(projectData);
+            hideModal();
+            alert('Project succesvol aangemaakt!');
+            
+        } catch (error) {
+            console.error('Error creating project:', error);
+            alert('Er is iets misgegaan bij het aanmaken van het project. Probeer het opnieuw.');
+        } finally {
+            document.getElementById('loading-spinner').classList.add('hidden');
+        }
+    });
+}
 
     // Modal close handlers
     document.querySelector('.close-modal')?.addEventListener('click', hideModal);
