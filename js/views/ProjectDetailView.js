@@ -1,5 +1,5 @@
 import { subscribeToProject, saveWalk, subscribeToWalks, updateProjectGoal } from '../lib/firebase.js';
-import { saveRoute, subscribeToRoutes, deleteRoute } from '../lib/routes.js';
+import { saveRoute, subscribeToRoutes, deleteRoute, saveRouteWithGeocode } from '../lib/routes.js';
 import { View } from '../lib/router.js';
 import { config } from '../lib/config.js';
  
