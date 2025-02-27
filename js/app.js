@@ -1,6 +1,6 @@
 import { ProjectDetailView } from './views/ProjectDetailView.js';
 import { Router, View } from './lib/router.js';
-import { initializeAuth, loginWithGoogle, logout, createProject } from './lib/firebase.js';
+import { initializeAuth, loginWithGoogle, logout, createProject, createProjectWithGeocode } from './lib/firebase.js';
 import Homepage from './components/Homepage.js';
 
 // De routes.js wordt al in ProjectDetailView.js geïmporteerd, dus geen expliciete import nodig in app.js
