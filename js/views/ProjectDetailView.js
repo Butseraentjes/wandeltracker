@@ -15,41 +15,41 @@ export class ProjectDetailView extends View {
         this.currentRouteIndex = 0;
     }
 
-    async getRouteCoordinates(startLat, startLng, distance) {
-        try {
-            const angleInRadians = Math.random() * 2 * Math.PI;
-            const distanceInDegrees = distance / 111;
-            const endLat = startLat + (distanceInDegrees * Math.cos(angleInRadians));
-            const endLng = startLng + (distanceInDegrees * Math.sin(angleInRadians));
-            
-            const { apiKey } = config.graphhopper;
-            const url = `https://graphhopper.com/api/1/route?vehicle=foot&locale=nl&key=${apiKey}&point=${startLat},${startLng}&point=${endLat},${endLng}&points_encoded=false&instructions=true&elevation=true`;
+// Verbetering voor de getRouteCoordinates functie in ProjectDetailView.js
+async getRouteCoordinates(startLat, startLng, endLat, endLng) {
+    try {
+        const { apiKey } = config.graphhopper;
+        
+        // GraphHopper API aanroepen om een echte wandelroute te krijgen
+        const url = `https://graphhopper.com/api/1/route?vehicle=foot&locale=nl&key=${apiKey}&point=${startLat},${startLng}&point=${endLat},${endLng}&points_encoded=false&instructions=true&elevation=true`;
 
-            console.log('Requesting route from GraphHopper:', url);
-            
-            const response = await fetch(url);
-            
-            if (!response.ok) {
-                throw new Error(`GraphHopper API error: ${response.status} ${response.statusText}`);
-            }
-            
-            const data = await response.json();
-            console.log('GraphHopper response:', data);
-            
-            if (data.paths && data.paths.length > 0) {
-                return data.paths[0].points.coordinates.map(coord => [coord[1], coord[0]]);
-            }
-            
-            throw new Error('Geen route gevonden in GraphHopper response');
-        } catch (error) {
-            console.error('Error getting route:', error);
-            const jitter = (Math.random() - 0.5) * 0.01;
-            return [
-                [startLat, startLng],
-                [startLat + jitter, startLng + (distance / 111)]
-            ];
+        console.log('Requesting walking route from GraphHopper:', url);
+        
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+            throw new Error(`GraphHopper API error: ${response.status} ${response.statusText}`);
         }
+        
+        const data = await response.json();
+        console.log('GraphHopper response:', data);
+        
+        if (data.paths && data.paths.length > 0) {
+            // GraphHopper geeft coördinaten terug in volgorde [longitude, latitude], 
+            // maar Leaflet verwacht [latitude, longitude]
+            return data.paths[0].points.coordinates.map(coord => [coord[1], coord[0]]);
+        }
+        
+        throw new Error('Geen route gevonden in GraphHopper response');
+    } catch (error) {
+        console.error('Error getting route:', error);
+        // Fallback naar rechte lijn als er iets misgaat
+        return [
+            [startLat, startLng],
+            [endLat, endLng]
+        ];
     }
+}
 
     async render() {
         console.log('ProjectDetailView render start');
