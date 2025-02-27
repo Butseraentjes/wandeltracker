@@ -15,41 +15,40 @@ export class ProjectDetailView extends View {
         this.currentRouteIndex = 0;
     }
 
-// Verbetering voor de getRouteCoordinates functie in ProjectDetailView.js
-async getRouteCoordinates(startLat, startLng, endLat, endLng) {
-    try {
-        const { apiKey } = config.graphhopper;
-        
-        // GraphHopper API aanroepen om een echte wandelroute te krijgen
-        const url = `https://graphhopper.com/api/1/route?vehicle=foot&locale=nl&key=${apiKey}&point=${startLat},${startLng}&point=${endLat},${endLng}&points_encoded=false&instructions=true&elevation=true`;
+    async getRouteCoordinates(startLat, startLng, endLat, endLng) {
+        try {
+            const { apiKey } = config.graphhopper;
+            
+            // GraphHopper API aanroepen om een echte wandelroute te krijgen
+            const url = `https://graphhopper.com/api/1/route?vehicle=foot&locale=nl&key=${apiKey}&point=${startLat},${startLng}&point=${endLat},${endLng}&points_encoded=false&instructions=true&elevation=true`;
 
-        console.log('Requesting walking route from GraphHopper:', url);
-        
-        const response = await fetch(url);
-        
-        if (!response.ok) {
-            throw new Error(`GraphHopper API error: ${response.status} ${response.statusText}`);
+            console.log('Requesting walking route from GraphHopper:', url);
+            
+            const response = await fetch(url);
+            
+            if (!response.ok) {
+                throw new Error(`GraphHopper API error: ${response.status} ${response.statusText}`);
+            }
+            
+            const data = await response.json();
+            console.log('GraphHopper response:', data);
+            
+            if (data.paths && data.paths.length > 0) {
+                // GraphHopper geeft coördinaten terug in volgorde [longitude, latitude], 
+                // maar Leaflet verwacht [latitude, longitude]
+                return data.paths[0].points.coordinates.map(coord => [coord[1], coord[0]]);
+            }
+            
+            throw new Error('Geen route gevonden in GraphHopper response');
+        } catch (error) {
+            console.error('Error getting route:', error);
+            // Fallback naar rechte lijn als er iets misgaat
+            return [
+                [startLat, startLng],
+                [endLat, endLng]
+            ];
         }
-        
-        const data = await response.json();
-        console.log('GraphHopper response:', data);
-        
-        if (data.paths && data.paths.length > 0) {
-            // GraphHopper geeft coördinaten terug in volgorde [longitude, latitude], 
-            // maar Leaflet verwacht [latitude, longitude]
-            return data.paths[0].points.coordinates.map(coord => [coord[1], coord[0]]);
-        }
-        
-        throw new Error('Geen route gevonden in GraphHopper response');
-    } catch (error) {
-        console.error('Error getting route:', error);
-        // Fallback naar rechte lijn als er iets misgaat
-        return [
-            [startLat, startLng],
-            [endLat, endLng]
-        ];
     }
-}
 
     async render() {
         console.log('ProjectDetailView render start');
@@ -97,7 +96,7 @@ async getRouteCoordinates(startLat, startLng, endLat, endLng) {
                             <div id="routes-container" class="mb-4">
                                 <p class="text-gray-600 text-sm mb-2">Routes worden geladen...</p>
                             </div>
-                           <div id="map" style="height: 400px;"></div>
+                            <div id="map" style="height: 400px;"></div>
                         </div>
                     </div>
                 </div>
@@ -323,7 +322,13 @@ goalForm.addEventListener('submit', async (e) => {
             });
 
             try {
-                const routeCoords = await this.getRouteCoordinates(startLat, startLng, totalDistance);
+                // Simuleer een route - dit zou vervangen moeten worden door een echte route naar een bestemming
+                const angleInRadians = Math.random() * 2 * Math.PI;
+                const distanceInDegrees = totalDistance / 111;
+                const endLat = startLat + (distanceInDegrees * Math.cos(angleInRadians));
+                const endLng = startLng + (distanceInDegrees * Math.sin(angleInRadians));
+                
+                const routeCoords = await this.getRouteCoordinates(startLat, startLng, endLat, endLng);
 
                 const mainPath = L.polyline(routeCoords, {
                     color: '#3B82F6',
@@ -673,8 +678,7 @@ goalForm.addEventListener('submit', async (e) => {
         });
     }
 
-    // Kaart updaten met routes
-    updateMapWithRoutes(project, routes) {
+    async updateMapWithRoutes(project, routes) {
         if (!this.map) return;
         
         // Verwijder bestaande route lijnen
@@ -712,54 +716,142 @@ goalForm.addEventListener('submit', async (e) => {
                 </div>
             `);
         
-        // Teken een lijn van start naar bestemming
-        const routeLine = L.polyline(
-            [
-                [startLat, startLng],
-                [destLat, destLng]
-            ],
-            {
-                color: '#6B46C1', // Paars voor de volledige route
-                weight: 3,
-                opacity: 0.6,
-                dashArray: '5, 5' // Gestippelde lijn
-            }
-        ).addTo(this.map);
-        
-        // Pas kaartweergave aan om alles te tonen
-        const bounds = routeLine.getBounds();
-        this.map.fitBounds(bounds, { padding: [50, 50] });
-        
-        // Als er waypoints zijn (dagelijkse wandelingen), toon die
-        if (currentRoute.waypoints && currentRoute.waypoints.length > 0) {
-            // Voeg alle waypoints toe
-            const waypoints = [
-                [startLat, startLng], 
-                ...currentRoute.waypoints.map(wp => [wp.coordinates.lat, wp.coordinates.lng])
-            ];
+        try {
+            // Haal echte wandelroute op
+            const routeCoords = await this.getRouteCoordinates(startLat, startLng, destLat, destLng);
             
-            // Teken de afgelegde route
-            const waypointLine = L.polyline(
-                waypoints,
+            // Teken de volledige route
+            const routeLine = L.polyline(
+                routeCoords,
                 {
-                    color: '#3B82F6', // Blauw voor de voortgang
-                    weight: 5,
-                    opacity: 0.8
+                    color: '#6B46C1', // Paars voor de volledige route
+                    weight: 3,
+                    opacity: 0.6
                 }
             ).addTo(this.map);
             
-            // Voeg marker voor laatste positie toe
-            const lastWaypoint = currentRoute.waypoints[currentRoute.waypoints.length - 1];
-            L.marker([lastWaypoint.coordinates.lat, lastWaypoint.coordinates.lng])
-                .addTo(this.map)
-                .bindPopup(`
-                    <div class="text-center">
-                        <strong>Huidige positie</strong><br>
-                        ${lastWaypoint.date}<br>
-                        ${lastWaypoint.description || ''}
-                    </div>
-                `);
-        } else {
+            // Pas kaartweergave aan om alles te tonen
+            const bounds = routeLine.getBounds();
+            this.map.fitBounds(bounds, { padding: [50, 50] });
+            
+            // Als er dagelijkse waypoints zijn, gebruik die
+            if (currentRoute.waypoints && currentRoute.waypoints.length > 0) {
+                // Voeg alle waypoints toe
+                const waypoints = [
+                    [startLat, startLng], 
+                    ...currentRoute.waypoints.map(wp => [wp.coordinates.lat, wp.coordinates.lng])
+                ];
+                
+                // Teken de afgelegde route
+             const waypointLine = L.polyline(
+                    waypoints,
+                    {
+                        color: '#3B82F6', // Blauw voor de voortgang
+                        weight: 5,
+                        opacity: 0.8
+                    }
+                ).addTo(this.map);
+                
+                // Voeg marker voor laatste positie toe
+                const lastWaypoint = currentRoute.waypoints[currentRoute.waypoints.length - 1];
+                L.marker([lastWaypoint.coordinates.lat, lastWaypoint.coordinates.lng])
+                    .addTo(this.map)
+                    .bindPopup(`
+                        <div class="text-center">
+                            <strong>Huidige positie</strong><br>
+                            ${lastWaypoint.date}<br>
+                            ${lastWaypoint.description || ''}
+                        </div>
+                    `);
+            } else {
+                // Als er geen waypoints zijn, toon voortgang op basis van totale afstand
+                const totalDistanceElement = document.getElementById('total-distance');
+                if (totalDistanceElement) {
+                    const totalDistanceText = totalDistanceElement.textContent;
+                    const totalDistance = parseFloat(totalDistanceText.match(/[\d.]+/)[0]) || 0;
+                    
+                    if (totalDistance > 0) {
+                        // Bereken totale routelengte
+                        let routeDistance = 0;
+                        for (let i = 1; i < routeCoords.length; i++) {
+                            routeDistance += this.calculateDistance(
+                                routeCoords[i-1][0], routeCoords[i-1][1],
+                                routeCoords[i][0], routeCoords[i][1]
+                            );
+                        }
+                        
+                        // Bereken hoe ver langs de route de wandelaar is
+                        const progress = Math.min(1, totalDistance / routeDistance);
+                        
+                        // Bereken welke punten op de route al zijn afgelegd
+                        let accumulatedDistance = 0;
+                        let progressCoords = [routeCoords[0]];
+                        
+                        for (let i = 1; i < routeCoords.length; i++) {
+                            const segmentDistance = this.calculateDistance(
+                                routeCoords[i-1][0], routeCoords[i-1][1],
+                                routeCoords[i][0], routeCoords[i][1]
+                            );
+                            
+                            if (accumulatedDistance + segmentDistance <= totalDistance) {
+                                // Dit volledige segment is afgelegd
+                                progressCoords.push(routeCoords[i]);
+                                accumulatedDistance += segmentDistance;
+                            } else {
+                                // Bereken het laatste punt op dit segment
+                                const segmentProgress = (totalDistance - accumulatedDistance) / segmentDistance;
+                                const lastLat = routeCoords[i-1][0] + (routeCoords[i][0] - routeCoords[i-1][0]) * segmentProgress;
+                                const lastLng = routeCoords[i-1][1] + (routeCoords[i][1] - routeCoords[i-1][1]) * segmentProgress;
+                                
+                                progressCoords.push([lastLat, lastLng]);
+                                break;
+                            }
+                        }
+                        
+                        // Teken de afgelegde route
+                        const progressLine = L.polyline(
+                            progressCoords,
+                            {
+                                color: '#3B82F6', // Blauw voor de voortgang
+                                weight: 5,
+                                opacity: 0.8
+                            }
+                        ).addTo(this.map);
+                        
+                        // Voeg marker voor huidige positie toe
+                        const currentPosition = progressCoords[progressCoords.length - 1];
+                        L.marker(currentPosition)
+                            .addTo(this.map)
+                            .bindPopup(`
+                                <div class="text-center">
+                                    <strong>Huidige positie</strong><br>
+                                    ${totalDistance.toFixed(1)} km afgelegd<br>
+                                    ${(progress * 100).toFixed(1)}% van de route voltooid
+                                </div>
+                            `)
+                            .openPopup();
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error creating walking route:', error);
+            
+            // Fallback naar rechte lijn als er iets misgaat
+            const routeLine = L.polyline(
+                [
+                    [startLat, startLng],
+                    [destLat, destLng]
+                ],
+                {
+                    color: '#6B46C1',
+                    weight: 3,
+                    opacity: 0.6,
+                    dashArray: '5, 5'
+                }
+            ).addTo(this.map);
+            
+            this.map.fitBounds(routeLine.getBounds(), { padding: [50, 50] });
+            
             // Als er geen waypoints zijn, toon alleen startpunt
             const totalDistanceElement = document.getElementById('total-distance');
             if (totalDistanceElement) {
