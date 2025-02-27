@@ -3,8 +3,6 @@ import { Router, View } from './lib/router.js';
 import { initializeAuth, loginWithGoogle, logout, createProject, createProjectWithGeocode } from './lib/firebase.js';
 import Homepage from './components/Homepage.js';
 
-// De routes.js wordt al in ProjectDetailView.js geïmporteerd, dus geen expliciete import nodig in app.js
-
 // Home View
 class HomeView extends View {
     constructor() {
@@ -22,7 +20,7 @@ class HomeView extends View {
         // Setup base structure only if needed
         if (!document.querySelector('.dashboard')) {
             mainContent.innerHTML = `
-                <div class="dashboard">
+              <div class="dashboard">
                     <div class="dashboard-header">
                         <h2>Mijn Projecten</h2>
                         <button id="new-project-btn" class="primary-btn">
@@ -145,40 +143,40 @@ function hideModal() {
 
 // Setup event listeners
 document.addEventListener('DOMContentLoaded', () => {
-// Project form submission
-const projectForm = document.getElementById('project-form');
-if (projectForm) {
-    projectForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        try {
-            document.getElementById('loading-spinner').classList.remove('hidden');
+    // Project form submission
+    const projectForm = document.getElementById('project-form');
+    if (projectForm) {
+        projectForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
             
-            const projectData = {
-                name: document.getElementById('project-name').value,
-                location: {
-                    street: document.getElementById('project-street').value,
-                    number: document.getElementById('project-number').value,
-                    postalCode: document.getElementById('project-postal').value,
-                    city: document.getElementById('project-city').value,
-                    country: 'Belgium' // Default waarde
-                },
-                description: document.getElementById('project-description').value
-            };
+            try {
+                document.getElementById('loading-spinner').classList.remove('hidden');
+                
+                const projectData = {
+                    name: document.getElementById('project-name').value,
+                    location: {
+                        street: document.getElementById('project-street').value,
+                        number: document.getElementById('project-number').value,
+                        postalCode: document.getElementById('project-postal').value,
+                        city: document.getElementById('project-city').value,
+                        country: 'Belgium' // Default waarde
+                    },
+                    description: document.getElementById('project-description').value
+                };
 
-            // Gebruik nieuwe functie met geocoding
-            await createProjectWithGeocode(projectData);
-            hideModal();
-            alert('Project succesvol aangemaakt!');
-            
-        } catch (error) {
-            console.error('Error creating project:', error);
-            alert('Er is iets misgegaan bij het aanmaken van het project. Probeer het opnieuw.');
-        } finally {
-            document.getElementById('loading-spinner').classList.add('hidden');
-        }
-    });
-}
+                // Gebruik nieuwe functie met geocoding
+                await createProjectWithGeocode(projectData);
+                hideModal();
+                alert('Project succesvol aangemaakt!');
+                
+            } catch (error) {
+                console.error('Error creating project:', error);
+                alert('Er is iets misgegaan bij het aanmaken van het project. Probeer het opnieuw.');
+            } finally {
+                document.getElementById('loading-spinner').classList.add('hidden');
+            }
+        });
+    }
 
     // Modal close handlers
     document.querySelector('.close-modal')?.addEventListener('click', hideModal);
