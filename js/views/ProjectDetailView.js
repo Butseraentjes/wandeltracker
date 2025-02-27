@@ -1,4 +1,5 @@
 import { subscribeToProject, saveWalk, subscribeToWalks, updateProjectGoal } from '../lib/firebase.js';
+import { saveRoute, subscribeToRoutes, deleteRoute } from '../lib/routes.js';
 import { View } from '../lib/router.js';
 import { config } from '../lib/config.js';
  
@@ -7,8 +8,11 @@ export class ProjectDetailView extends View {
         super();
         this.unsubscribeProject = null;
         this.unsubscribeWalks = null;
+        this.unsubscribeRoutes = null;
         this.calendar = null;
         this.map = null;
+        this.routes = [];
+        this.currentRouteIndex = 0;
     }
 
     async getRouteCoordinates(startLat, startLng, distance) {
@@ -84,7 +88,15 @@ export class ProjectDetailView extends View {
                             <div id="calendar" class="fc"></div>
                         </div>
                         <div class="map-section bg-white p-6 rounded-lg shadow">
-                            <h3 class="text-lg font-semibold mb-4">Kaart</h3>
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-lg font-semibold">Routes</h3>
+                                <button id="add-route-btn" class="text-blue-600 hover:text-blue-800">
+                                    + Nieuwe route
+                                </button>
+                            </div>
+                            <div id="routes-container" class="mb-4">
+                                <p class="text-gray-600 text-sm mb-2">Routes worden geladen...</p>
+                            </div>
                             <div id="map" style="height: 400px;"></div>
                         </div>
                     </div>
@@ -191,6 +203,9 @@ goalForm.addEventListener('submit', async (e) => {
                 this.initializeCalendar(project);
              
                 this.initializeMap(project);
+                
+                // Routes initialiseren
+                this.handleRoutes(project);
 
                 if (this.unsubscribeWalks) {
                     this.unsubscribeWalks();
@@ -223,258 +238,4 @@ goalForm.addEventListener('submit', async (e) => {
             console.error('Error in ProjectDetailView:', error);
             return `
                 <div class="error-container">
-                    <h2>Er is iets misgegaan</h2>
-                    <p>Ga terug naar <a href="/" data-route="/">projecten</a></p>
-                </div>
-            `;
-        }
-
-        return '';
-    }
-
-    initializeCalendar(project) {
-        const calendarEl = document.getElementById('calendar');
-        if (!calendarEl || this.calendar) return;
-
-        this.calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'dayGridMonth',
-            headerToolbar: {
-                left: 'prev,next today',
-                center: 'title',
-                right: 'dayGridMonth'
-            },
-            locale: 'nl',
-            height: 'auto',
-            selectable: true,
-            dateClick: (info) => {
-                this.handleDateClick(info, project);
-            }
-        });
-
-        this.calendar.render();
-
-        const addWalkBtn = document.getElementById('add-walk-btn');
-        if (addWalkBtn) {
-            addWalkBtn.addEventListener('click', () => {
-                const today = new Date().toISOString().split('T')[0];
-                this.handleDateClick({ dateStr: today }, project);
-            });
-        }
-    }
-
-initializeMap(project) {
-    const mapDiv = document.getElementById('map');
-    if (!mapDiv || this.map) return;
-
-    // Startpunt (project locatie)
-    const startLat = 50.981728;  // Dit zou eigenlijk uit project.location moeten komen
-    const startLng = 4.127903;
-
-    // Als er een doel is, centreer de kaart tussen start en eindpunt
-    if (project.goal) {
-        // Voor nu gebruiken we vaste coördinaten voor het doel
-        // TODO: Deze moeten we via een geocoding service ophalen
-        const endLat = 51.2194475;  // Voorbeeld: Brussel
-        const endLng = 4.4024643;
-
-        // Bereken het middelpunt voor de kaartweergave
-        const centerLat = (startLat + endLat) / 2;
-        const centerLng = (startLng + endLng) / 2;
-
-        this.map = L.map('map').setView([centerLat, centerLng], 10);
-    } else {
-        // Als er geen doel is, centreer op het startpunt
-        this.map = L.map('map').setView([startLat, startLng], 13);
-    }
-
-    // Voeg de OpenStreetMap tile layer toe
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
-    }).addTo(this.map);
-
-    // Voeg marker toe voor startpunt
-    const startMarker = L.marker([startLat, startLng])
-        .addTo(this.map)
-        .bindPopup(`
-            <div class="text-center">
-                <strong>Start</strong><br>
-                ${project.location.street} ${project.location.number},<br>
-                ${project.location.postalCode} ${project.location.city}
-            </div>
-        `);
-
-    // Als er een doel is, voeg eindpunt toe en teken een lijn
-    if (project.goal) {
-        const endLat = 51.2194475;  // Voorbeeld: Brussel
-        const endLng = 4.4024643;
-
-        // Voeg marker toe voor eindpunt
-        const endMarker = L.marker([endLat, endLng])
-            .addTo(this.map)
-            .bindPopup(`
-                <div class="text-center">
-                    <strong>Doel</strong><br>
-                    ${project.goal.city}
-                </div>
-            `);
-
-        // Teken een lijn tussen start- en eindpunt
-        const pathLine = L.polyline(
-            [
-                [startLat, startLng],
-                [endLat, endLng]
-            ],
-            {
-                color: '#3B82F6',
-                weight: 4,
-                opacity: 0.8
-            }
-        ).addTo(this.map);
-
-        // Pas kaartweergave aan om beide punten te tonen
-        this.map.fitBounds(pathLine.getBounds(), { padding: [50, 50] });
-    }
-}
-
-    async updateMapPath(project, totalDistance) {
-        if (!this.map) return;
-
-        const startLat = 50.9953;
-        const startLng = 4.1277;
-
-        this.map.eachLayer((layer) => {
-            if (
-                layer instanceof L.Polyline ||
-                (layer instanceof L.Marker && layer._popup?.getContent().includes('Huidige positie'))
-            ) {
-                this.map.removeLayer(layer);
-            }
-        });
-
-        try {
-            const routeCoords = await this.getRouteCoordinates(startLat, startLng, totalDistance);
-
-            const mainPath = L.polyline(routeCoords, {
-                color: '#3B82F6',
-                weight: 4,
-                opacity: 0.8,
-                lineCap: 'round'
-            }).addTo(this.map);
-
-            const endPoint = routeCoords[routeCoords.length - 1];
-            const marker = L.marker(endPoint)
-                .addTo(this.map)
-                .bindPopup(
-                    `
-                        <div class="text-center">
-                            <strong>Huidige positie</strong><br>
-                            ${totalDistance.toFixed(1)} km vanaf start
-                        </div>
-                    `,
-                    { className: 'custom-popup' }
-                );
-
-            marker.openPopup();
-            this.map.fitBounds(mainPath.getBounds(), { padding: [50, 50] });
-        } catch (error) {
-            console.error('Error updating map:', error);
-
-            const endLng = startLng + (totalDistance / 111);
-            const pathLine = L.polyline(
-                [
-                    [startLat, startLng],
-                    [startLat, endLng]
-                ],
-                {
-                    color: '#3B82F6',
-                    weight: 4,
-                    opacity: 0.8
-                }
-            ).addTo(this.map);
-
-            L.marker([startLat, endLng])
-                .addTo(this.map)
-                .bindPopup(
-                    `
-                        <div class="text-center">
-                            <strong>Huidige positie</strong><br>
-                            ${totalDistance.toFixed(1)} km vanaf start
-                        </div>
-                    `
-                );
-
-            this.map.fitBounds(pathLine.getBounds(), { padding: [50, 50] });
-        }
-    }
-
-    handleDateClick(info, project) {
-        const modal = document.getElementById('walk-modal');
-        const dateInput = document.getElementById('walk-date');
-        const distanceInput = document.getElementById('walk-distance');
-        const form = document.getElementById('walk-form');
-        const closeBtn = modal.querySelector('.close-modal');
-        const cancelBtn = document.getElementById('cancel-walk');
-
-        form.reset();
-        dateInput.value = info.dateStr;
-
-        modal.classList.remove('hidden');
-
-        const handleSubmit = async (e) => {
-            e.preventDefault();
-
-            try {
-                document.getElementById('loading-spinner').classList.remove('hidden');
-
-                const walkData = {
-                    date: dateInput.value,
-                    distance: parseFloat(distanceInput.value),
-                    projectId: project.id
-                };
-
-                await saveWalk(project.id, walkData);
-                modal.classList.add('hidden');
-            } catch (error) {
-                console.error('Error saving walk:', error);
-                alert('Er is iets misgegaan bij het opslaan van de wandeling. Probeer het opnieuw.');
-            } finally {
-                document.getElementById('loading-spinner').classList.add('hidden');
-            }
-        };
-
-        const handleClose = () => {
-            modal.classList.add('hidden');
-            form.removeEventListener('submit', handleSubmit);
-            closeBtn.removeEventListener('click', handleClose);
-            cancelBtn.removeEventListener('click', handleClose);
-            modal.removeEventListener('click', handleModalClick);
-        };
-
-        const handleModalClick = (e) => {
-            if (e.target === modal) handleClose();
-        };
-
-        form.addEventListener('submit', handleSubmit);
-        closeBtn.addEventListener('click', handleClose);
-        cancelBtn.addEventListener('click', handleClose);
-        modal.addEventListener('click', handleModalClick);
-    }
-
-    async cleanup() {
-        if (this.unsubscribeProject) {
-            this.unsubscribeProject();
-        }
-        if (this.unsubscribeWalks) {
-            this.unsubscribeWalks();
-        }
-        if (this.calendar) {
-            this.calendar.destroy();
-            this.calendar = null;
-        }
-        if (this.map) {
-            this.map.remove();
-            this.map = null;
-        }
-        super.cleanup();
-    }
-}
+                    <h2>Er is i
