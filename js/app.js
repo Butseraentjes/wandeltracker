@@ -145,8 +145,7 @@ function hideModal() {
 
 // Setup event listeners
 document.addEventListener('DOMContentLoaded', () => {
-    // Project form submission
-// In app.js waar project wordt aangemaakt
+// Project form submission
 const projectForm = document.getElementById('project-form');
 if (projectForm) {
     projectForm.addEventListener('submit', async (e) => {
@@ -161,14 +160,12 @@ if (projectForm) {
                     street: document.getElementById('project-street').value,
                     number: document.getElementById('project-number').value,
                     postalCode: document.getElementById('project-postal').value,
-                    city: document.getElementById('project-city').value,
-                    country: 'Belgium' // Default waarde
+                    city: document.getElementById('project-city').value
                 },
                 description: document.getElementById('project-description').value
             };
 
-            // Gebruik nieuwe functie met geocoding
-            await createProjectWithGeocode(projectData);
+            await createProject(projectData);
             hideModal();
             alert('Project succesvol aangemaakt!');
             
