@@ -142,15 +142,12 @@
                 <input type="text" id="route-name" required>
             </div>
             <div class="form-group">
-                <label for="route-destination">Bestemming</label>
-                <div class="flex gap-4">
-                    <div class="w-full">
-                        <input type="text" id="route-city" placeholder="Stad/Gemeente" required>
-                    </div>
-                    <div class="w-full">
-                        <input type="text" id="route-country" placeholder="Land" required>
-                    </div>
-                </div>
+                <label for="route-destination">Eindbestemming</label>
+                <input type="text" id="route-dest-street" placeholder="Straat" required>
+                <input type="text" id="route-dest-number" placeholder="Nummer" required>
+                <input type="text" id="route-dest-postal" placeholder="Postcode" required>
+                <input type="text" id="route-dest-city" placeholder="Gemeente" required>
+                <input type="text" id="route-dest-country" placeholder="Land" value="Belgium">
             </div>
             <div class="form-group">
                 <label for="route-description">Beschrijving (optioneel)</label>
