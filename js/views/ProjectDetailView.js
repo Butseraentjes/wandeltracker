@@ -623,87 +623,101 @@ goalForm.addEventListener('submit', async (e) => {
         });
     }
 
-    // Route modal tonen
-    showRouteModal(route = null) {
-        const modal = document.getElementById('route-modal');
-        const form = document.getElementById('route-form');
-        const titleEl = document.getElementById('route-modal-title');
-        const idInput = document.getElementById('route-id');
-        const nameInput = document.getElementById('route-name');
-        const cityInput = document.getElementById('route-city');
-        const countryInput = document.getElementById('route-country');
-        const descriptionInput = document.getElementById('route-description');
-        const saveBtn = document.getElementById('save-route-btn');
+// Route modal tonen
+showRouteModal(route = null) {
+    const modal = document.getElementById('route-modal');
+    const form = document.getElementById('route-form');
+    const titleEl = document.getElementById('route-modal-title');
+    const idInput = document.getElementById('route-id');
+    const nameInput = document.getElementById('route-name');
+    const streetInput = document.getElementById('route-dest-street');
+    const numberInput = document.getElementById('route-dest-number');
+    const postalInput = document.getElementById('route-dest-postal');
+    const cityInput = document.getElementById('route-dest-city');
+    const countryInput = document.getElementById('route-dest-country');
+    const descriptionInput = document.getElementById('route-description');
+    
+    // Reset form
+    form.reset();
+    
+    // Titel aanpassen
+    titleEl.textContent = route ? 'Route Bewerken' : 'Route Toevoegen';
+    
+    // Formulier vullen als het een bewerking is
+    if (route) {
+        idInput.value = route.id;
+        nameInput.value = route.name;
         
-        // Reset form
-        form.reset();
-        
-        // Titel aanpassen
-        titleEl.textContent = route ? 'Route Bewerken' : 'Route Toevoegen';
-        
-        // Formulier vullen als het een bewerking is
-        if (route) {
-            idInput.value = route.id;
-            nameInput.value = route.name;
-            cityInput.value = route.city;
-            countryInput.value = route.country;
-            if (route.description) {
-                descriptionInput.value = route.description;
-            }
-        } else {
-            idInput.value = '';
+        if (route.destination) {
+            streetInput.value = route.destination.street || '';
+            numberInput.value = route.destination.number || '';
+            postalInput.value = route.destination.postalCode || '';
+            cityInput.value = route.destination.city || '';
+            countryInput.value = route.destination.country || 'Belgium';
         }
         
-        // Modal tonen
-        modal.classList.remove('hidden');
-        
-        // Event handlers
-        const closeModal = () => {
-            modal.classList.add('hidden');
-            form.removeEventListener('submit', handleSubmit);
-        };
-        
-        const handleSubmit = async (e) => {
-            e.preventDefault();
-            
-            try {
-                document.getElementById('loading-spinner').classList.remove('hidden');
-                
-                const routeData = {
-                    name: nameInput.value,
-                    city: cityInput.value,
-                    country: countryInput.value,
-                    description: descriptionInput.value,
-                };
-                
-                if (idInput.value) {
-                    routeData.id = idInput.value;
-                }
-                
-                await saveRoute(this.params.id, routeData);
-                closeModal();
-                
-            } catch (error) {
-                console.error('Error saving route:', error);
-                alert(error.message || 'Er is iets misgegaan bij het opslaan van de route.');
-            } finally {
-                document.getElementById('loading-spinner').classList.add('hidden');
-            }
-        };
-        
-        // Event listeners
-        form.addEventListener('submit', handleSubmit);
-        
-        const closeBtn = modal.querySelector('.close-modal');
-        const cancelBtn = document.getElementById('cancel-route');
-        
-        closeBtn.addEventListener('click', closeModal);
-        cancelBtn.addEventListener('click', closeModal);
-        
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) closeModal();
-        });
+        if (route.description) {
+            descriptionInput.value = route.description;
+        }
+    } else {
+        idInput.value = '';
+        countryInput.value = 'Belgium'; // Default land
     }
+    
+    // Modal tonen
+    modal.classList.remove('hidden');
+    
+    // Event handlers
+    const closeModal = () => {
+        modal.classList.add('hidden');
+        form.removeEventListener('submit', handleSubmit);
+    };
+    
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        
+        try {
+            document.getElementById('loading-spinner').classList.remove('hidden');
+            
+            const routeData = {
+                name: nameInput.value,
+                destStreet: streetInput.value,
+                destNumber: numberInput.value,
+                destPostalCode: postalInput.value,
+                destCity: cityInput.value,
+                destCountry: countryInput.value,
+                description: descriptionInput.value,
+            };
+            
+            if (idInput.value) {
+                routeData.id = idInput.value;
+            }
+            
+            // Gebruik de nieuwe functie met geocoding
+            await saveRouteWithGeocode(this.params.id, routeData);
+            closeModal();
+            
+        } catch (error) {
+            console.error('Error saving route:', error);
+            alert(error.message || 'Er is iets misgegaan bij het opslaan van de route.');
+        } finally {
+            document.getElementById('loading-spinner').classList.add('hidden');
+        }
+    };
+    
+    // Event listeners
+    form.addEventListener('submit', handleSubmit);
+    
+    const closeBtn = modal.querySelector('.close-modal');
+    const cancelBtn = document.getElementById('cancel-route');
+    
+    closeBtn.addEventListener('click', closeModal);
+    cancelBtn.addEventListener('click', closeModal);
+    
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+}
 
     // Kaart updaten met routes
     updateMapWithRoutes(project, routes) {
