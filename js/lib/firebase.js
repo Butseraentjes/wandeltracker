@@ -116,6 +116,54 @@ export async function createProject(projectData) {
     }
 }
 
+// Functie om geocoding op te slaan bij project aanmaken
+export async function createProjectWithGeocode(projectData) {
+    try {
+        const user = auth.currentUser;
+        if (!user) throw new Error("Geen gebruiker ingelogd");
+
+        // Geocode het adres
+        const location = {
+            street: projectData.location.street,
+            number: projectData.location.number,
+            postalCode: projectData.location.postalCode,
+            city: projectData.location.city,
+            country: projectData.location.country || 'Belgium'
+        };
+
+        let coordinates;
+        try {
+            const { geocodeAddress } = await import('./geocoding.js');
+            coordinates = await geocodeAddress(location);
+        } catch (error) {
+            console.error("Geocoding error:", error);
+            coordinates = {
+                lat: 50.8503, // Default: Brussel
+                lng: 4.3517,
+                displayName: 'Locatie niet gevonden - standaardlocatie gebruikt'
+            };
+        }
+
+        const projectsRef = db.collection("projects");
+        const newProjectRef = projectsRef.doc();
+
+        await newProjectRef.set({
+            ...projectData,
+            location: {
+                ...projectData.location,
+                coordinates: coordinates
+            },
+            userId: user.uid,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        return newProjectRef.id;
+    } catch (error) {
+        console.error("Error creating project:", error);
+        throw error;
+    }
+}
+
 // Projecten ophalen
 export function subscribeToProjects(callback) {
     console.log('Setting up projects subscription...');
@@ -245,54 +293,3 @@ export async function updateProjectGoal(projectId, goalData) {
 }
 
 export { db, auth };
-
-
-
-
-// Functie om geocoding op te slaan bij project aanmaken
-export async function createProjectWithGeocode(projectData) {
-    try {
-        const user = auth.currentUser;
-        if (!user) throw new Error("Geen gebruiker ingelogd");
-
-        // Geocode het adres
-        const location = {
-            street: projectData.location.street,
-            number: projectData.location.number,
-            postalCode: projectData.location.postalCode,
-            city: projectData.location.city,
-            country: projectData.location.country || 'Belgium'
-        };
-
-        let coordinates;
-        try {
-            const { geocodeAddress } = await import('./geocoding.js');
-            coordinates = await geocodeAddress(location);
-        } catch (error) {
-            console.error("Geocoding error:", error);
-            coordinates = {
-                lat: 50.8503, // Default: Brussel
-                lng: 4.3517,
-                displayName: 'Locatie niet gevonden - standaardlocatie gebruikt'
-            };
-        }
-
-        const projectsRef = db.collection("projects");
-        const newProjectRef = projectsRef.doc();
-
-        await newProjectRef.set({
-            ...projectData,
-            location: {
-                ...projectData.location,
-                coordinates: coordinates
-            },
-            userId: user.uid,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-
-        return newProjectRef.id;
-    } catch (error) {
-        console.error("Error creating project:", error);
-        throw error;
-    }
-}
