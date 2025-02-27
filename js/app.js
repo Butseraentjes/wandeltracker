@@ -3,6 +3,8 @@ import { Router, View } from './lib/router.js';
 import { initializeAuth, loginWithGoogle, logout, createProject } from './lib/firebase.js';
 import Homepage from './components/Homepage.js';
 
+// De routes.js wordt al in ProjectDetailView.js geïmporteerd, dus geen expliciete import nodig in app.js
+
 // Home View
 class HomeView extends View {
     constructor() {
