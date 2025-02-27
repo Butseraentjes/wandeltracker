@@ -673,87 +673,111 @@ showRouteModal(route = null) {
     });
 }
 
-    // Kaart updaten met routes
-    updateMapWithRoutes(project, routes) {
-        if (!this.map) return;
+// Kaart updaten met routes
+updateMapWithRoutes(project, routes) {
+    if (!this.map) return;
+    
+    // Verwijder bestaande route lijnen
+    this.map.eachLayer((layer) => {
+        if (layer instanceof L.Polyline || 
+            (layer instanceof L.Marker && 
+             !layer._popup?.getContent().includes('Start'))) {
+            this.map.removeLayer(layer);
+        }
+    });
+    
+    // Als er geen routes zijn, toon alleen de standaard kaart
+    if (routes.length === 0) return;
+    
+    // Startpunt (project locatie)
+    const startLat = project.location.coordinates?.lat || 50.981728;
+    const startLng = project.location.coordinates?.lng || 4.127903;
+    
+    // Huidige geselecteerde route
+    const currentRoute = routes[this.currentRouteIndex] || routes[0];
+    if (!currentRoute) return;
+    
+    // Eindpunt coördinaten
+    const destLat = currentRoute.destination?.coordinates?.lat || 51.2194;
+    const destLng = currentRoute.destination?.coordinates?.lng || 4.4025;
+    
+    // Voeg route-marker toe
+    const destinationMarker = L.marker([destLat, destLng])
+        .addTo(this.map)
+        .bindPopup(`
+            <div class="text-center">
+                <strong>Bestemming: ${currentRoute.name}</strong><br>
+                ${currentRoute.destination?.street || ''} ${currentRoute.destination?.number || ''}<br>
+                ${currentRoute.destination?.postalCode || ''} ${currentRoute.destination?.city || ''}
+            </div>
+        `);
+    
+    // Teken een lijn van start naar bestemming
+    const routeLine = L.polyline(
+        [
+            [startLat, startLng],
+            [destLat, destLng]
+        ],
+        {
+            color: '#6B46C1', // Paars voor de volledige route
+            weight: 3,
+            opacity: 0.6,
+            dashArray: '5, 5' // Gestippelde lijn
+        }
+    ).addTo(this.map);
+    
+    // Pas kaartweergave aan om alles te tonen
+    const bounds = routeLine.getBounds();
+    this.map.fitBounds(bounds, { padding: [50, 50] });
+    
+    // Als er waypoints zijn (dagelijkse wandelingen), toon die
+    if (currentRoute.waypoints && currentRoute.waypoints.length > 0) {
+        // Voeg alle waypoints toe
+        const waypoints = [
+            [startLat, startLng], 
+            ...currentRoute.waypoints.map(wp => [wp.coordinates.lat, wp.coordinates.lng])
+        ];
         
-        // Verwijder bestaande route lijnen
-        this.map.eachLayer((layer) => {
-            if (layer instanceof L.Polyline || 
-                (layer instanceof L.Marker && 
-                 !layer._popup?.getContent().includes('Start') && 
-                 !layer._popup?.getContent().includes('Huidige positie'))) {
-                this.map.removeLayer(layer);
-            }
-        });
-        
-        // Als er geen routes zijn, toon alleen de standaard kaart
-        if (routes.length === 0) return;
-        
-        const startLat = 50.981728;  // Project startlocatie
-        const startLng = 4.127903;
-        
-        // Huidige geselecteerde route
-        const currentRoute = routes[this.currentRouteIndex] || routes[0];
-        if (!currentRoute) return;
-        
-        // Eindpunt coördinaten (dit zou eigenlijk via een geocoding service moeten)
-        // Voor nu gebruiken we random coördinaten per route
-        const routeEndpoints = {
-            // Simuleer verschillende eindpunten per route
-            0: { lat: 51.2194475, lng: 4.4024643 },  // Bijvoorbeeld Antwerpen
-            1: { lat: 50.8503396, lng: 4.3517103 },  // Bijvoorbeeld Brussel
-            2: { lat: 51.0543422, lng: 3.7174243 }   // Bijvoorbeeld Gent
-        };
-        
-        const endpoint = routeEndpoints[this.currentRouteIndex] || routeEndpoints[0];
-        
-        // Voeg route-marker toe
-        const destinationMarker = L.marker([endpoint.lat, endpoint.lng])
-            .addTo(this.map)
-            .bindPopup(`
-                <div class="text-center">
-                    <strong>Bestemming: ${currentRoute.name}</strong><br>
-                    ${currentRoute.city}, ${currentRoute.country}
-                </div>
-            `);
-        
-        // Teken een lijn van start naar bestemming
-        const routeLine = L.polyline(
-            [
-                [startLat, startLng],
-                [endpoint.lat, endpoint.lng]
-            ],
+        // Teken de afgelegde route
+        const waypointLine = L.polyline(
+            waypoints,
             {
-                color: '#6B46C1', // Paars voor de volledige route
-                weight: 3,
-                opacity: 0.6,
-                dashArray: '5, 5' // Gestippelde lijn
+                color: '#3B82F6', // Blauw voor de voortgang
+                weight: 5,
+                opacity: 0.8
             }
         ).addTo(this.map);
         
-        // Pas kaartweergave aan om alles te tonen
-        const bounds = routeLine.getBounds();
-        this.map.fitBounds(bounds, { padding: [50, 50] });
-        
-        // Als er voortgang is, teken die op de route
+        // Voeg marker voor laatste positie toe
+        const lastWaypoint = currentRoute.waypoints[currentRoute.waypoints.length - 1];
+        L.marker([lastWaypoint.coordinates.lat, lastWaypoint.coordinates.lng])
+            .addTo(this.map)
+            .bindPopup(`
+                <div class="text-center">
+                    <strong>Huidige positie</strong><br>
+                    ${lastWaypoint.date}<br>
+                    ${lastWaypoint.description || ''}
+                </div>
+            `);
+    } else {
+        // Als er geen waypoints zijn, toon alleen startpunt
         const totalDistanceElement = document.getElementById('total-distance');
         if (totalDistanceElement) {
             const totalDistanceText = totalDistanceElement.textContent;
-            const totalDistance = parseFloat(totalDistanceText.match(/[\d.]+/)[0]);
+            const totalDistance = parseFloat(totalDistanceText.match(/[\d.]+/)[0]) || 0;
             
             if (totalDistance > 0) {
                 // Bereken positie op route
                 const routeDistance = this.calculateDistance(
                     startLat, startLng,
-                    endpoint.lat, endpoint.lng
+                    destLat, destLng
                 );
                 
                 const progress = Math.min(1, totalDistance / routeDistance);
                 
                 // Bereken huidige punt op de route
-                const currentLat = startLat + (endpoint.lat - startLat) * progress;
-                const currentLng = startLng + (endpoint.lng - startLng) * progress;
+                const currentLat = startLat + (destLat - startLat) * progress;
+                const currentLng = startLng + (destLng - startLng) * progress;
                 
                 // Voeg voortgangs-lijn toe
                 const progressLine = L.polyline(
@@ -782,6 +806,7 @@ showRouteModal(route = null) {
             }
         }
     }
+}
     
     // Helper functie om afstand te berekenen (in km)
     calculateDistance(lat1, lon1, lat2, lon2) {
