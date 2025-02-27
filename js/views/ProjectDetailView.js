@@ -97,7 +97,7 @@ export class ProjectDetailView extends View {
                             <div id="routes-container" class="mb-4">
                                 <p class="text-gray-600 text-sm mb-2">Routes worden geladen...</p>
                             </div>
-                            <div id="map" style="height: 400px;"></div>
+                           <div id="map" style="height: 400px;"></div>
                         </div>
                     </div>
                 </div>
@@ -237,7 +237,7 @@ goalForm.addEventListener('submit', async (e) => {
         } catch (error) {
             console.error('Error in ProjectDetailView:', error);
             return `
-               <div class="error-container">
+                <div class="error-container">
                     <h2>Er is iets misgegaan</h2>
                     <p>Ga terug naar <a href="/" data-route="/">projecten</a></p>
                 </div>
@@ -277,41 +277,41 @@ goalForm.addEventListener('submit', async (e) => {
         }
     }
 
-initializeMap(project) {
-    const mapDiv = document.getElementById('map');
-    if (!mapDiv || this.map) return;
+    initializeMap(project) {
+        const mapDiv = document.getElementById('map');
+        if (!mapDiv || this.map) return;
 
-    // Startpunt (project locatie)
-    const startLat = project.location.coordinates?.lat || 50.981728;
-    const startLng = project.location.coordinates?.lng || 4.127903;
+        // Startpunt (project locatie)
+        const startLat = project.location.coordinates?.lat || 50.981728;
+        const startLng = project.location.coordinates?.lng || 4.127903;
 
-    // Initialiseer de kaart
-    this.map = L.map('map').setView([startLat, startLng], 13);
+        // Initialiseer de kaart
+        this.map = L.map('map').setView([startLat, startLng], 13);
 
-    // Voeg de OpenStreetMap tile layer toe
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
-    }).addTo(this.map);
+        // Voeg de OpenStreetMap tile layer toe
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(this.map);
 
-    // Voeg marker toe voor startpunt
-    const startMarker = L.marker([startLat, startLng])
-        .addTo(this.map)
-        .bindPopup(`
-            <div class="text-center">
-                <strong>Start</strong><br>
-                ${project.location.street} ${project.location.number},<br>
-                ${project.location.postalCode} ${project.location.city}
-            </div>
-        `);
-}
+        // Voeg marker toe voor startpunt
+        const startMarker = L.marker([startLat, startLng])
+            .addTo(this.map)
+            .bindPopup(`
+                <div class="text-center">
+                    <strong>Start</strong><br>
+                    ${project.location.street} ${project.location.number},<br>
+                    ${project.location.postalCode} ${project.location.city}
+                </div>
+            `);
+    }
 
     async updateMapPath(project, totalDistance) {
         if (!this.map || !this.routes || this.routes.length === 0) {
             // Als er geen routes zijn, gebruik de originele implementatie
             if (!this.map) return;
 
-            const startLat = 50.9953;
-            const startLng = 4.1277;
+            const startLat = project.location.coordinates?.lat || 50.9953;
+            const startLng = project.location.coordinates?.lng || 4.1277;
 
             this.map.eachLayer((layer) => {
                 if (
@@ -512,13 +512,13 @@ initializeMap(project) {
                             </button>
                         </div>
                     </div>
-                    <p class="text-gray-600 mb-2">Bestemming: ${currentRoute.city}, ${currentRoute.country}</p>
+                    <p class="text-gray-600 mb-2">Bestemming: ${currentRoute.destination?.city || ''}, ${currentRoute.destination?.country || ''}</p>
                     ${currentRoute.description ? `<p class="text-gray-600 mb-2">${currentRoute.description}</p>` : ''}
                     
                     <div class="progress-container border rounded p-2 mb-2">
                         <div class="flex justify-between text-sm text-gray-600 mb-1">
                             <span>${project.location.city}</span>
-                            <span>${currentRoute.city}</span>
+                            <span>${currentRoute.destination?.city || ''}</span>
                         </div>
                         <div class="h-2 bg-gray-200 rounded overflow-hidden">
                             <div class="h-2 bg-blue-600" style="width: ${progress}%"></div>
@@ -577,236 +577,236 @@ initializeMap(project) {
         });
     }
 
-// Route modal tonen
-showRouteModal(route = null) {
-    const modal = document.getElementById('route-modal');
-    const form = document.getElementById('route-form');
-    const titleEl = document.getElementById('route-modal-title');
-    const idInput = document.getElementById('route-id');
-    const nameInput = document.getElementById('route-name');
-    const streetInput = document.getElementById('route-dest-street');
-    const numberInput = document.getElementById('route-dest-number');
-    const postalInput = document.getElementById('route-dest-postal');
-    const cityInput = document.getElementById('route-dest-city');
-    const countryInput = document.getElementById('route-dest-country');
-    const descriptionInput = document.getElementById('route-description');
-    
-    // Reset form
-    form.reset();
-    
-    // Titel aanpassen
-    titleEl.textContent = route ? 'Route Bewerken' : 'Route Toevoegen';
-    
-    // Formulier vullen als het een bewerking is
-    if (route) {
-        idInput.value = route.id;
-        nameInput.value = route.name;
+    // Route modal tonen
+    showRouteModal(route = null) {
+        const modal = document.getElementById('route-modal');
+        const form = document.getElementById('route-form');
+        const titleEl = document.getElementById('route-modal-title');
+        const idInput = document.getElementById('route-id');
+        const nameInput = document.getElementById('route-name');
+        const streetInput = document.getElementById('route-dest-street');
+        const numberInput = document.getElementById('route-dest-number');
+        const postalInput = document.getElementById('route-dest-postal');
+        const cityInput = document.getElementById('route-dest-city');
+        const countryInput = document.getElementById('route-dest-country');
+        const descriptionInput = document.getElementById('route-description');
         
-        if (route.destination) {
-            streetInput.value = route.destination.street || '';
-            numberInput.value = route.destination.number || '';
-            postalInput.value = route.destination.postalCode || '';
-            cityInput.value = route.destination.city || '';
-            countryInput.value = route.destination.country || 'Belgium';
+        // Reset form
+        form.reset();
+        
+        // Titel aanpassen
+        titleEl.textContent = route ? 'Route Bewerken' : 'Route Toevoegen';
+        
+        // Formulier vullen als het een bewerking is
+        if (route) {
+            idInput.value = route.id;
+            nameInput.value = route.name;
+            
+            if (route.destination) {
+                streetInput.value = route.destination.street || '';
+                numberInput.value = route.destination.number || '';
+                postalInput.value = route.destination.postalCode || '';
+                cityInput.value = route.destination.city || '';
+                countryInput.value = route.destination.country || 'Belgium';
+            }
+            
+            if (route.description) {
+                descriptionInput.value = route.description;
+            }
+        } else {
+            idInput.value = '';
+            countryInput.value = 'Belgium'; // Default land
         }
         
-        if (route.description) {
-            descriptionInput.value = route.description;
-        }
-    } else {
-        idInput.value = '';
-        countryInput.value = 'Belgium'; // Default land
+        // Modal tonen
+        modal.classList.remove('hidden');
+        
+        // Event handlers
+        const closeModal = () => {
+            modal.classList.add('hidden');
+            form.removeEventListener('submit', handleSubmit);
+        };
+        
+        const handleSubmit = async (e) => {
+            e.preventDefault();
+            
+            try {
+                document.getElementById('loading-spinner').classList.remove('hidden');
+                
+                const routeData = {
+                    name: nameInput.value,
+                    destStreet: streetInput.value,
+                    destNumber: numberInput.value,
+                    destPostalCode: postalInput.value,
+                    destCity: cityInput.value,
+                    destCountry: countryInput.value,
+                    description: descriptionInput.value,
+                };
+                
+                if (idInput.value) {
+                    routeData.id = idInput.value;
+                }
+                
+                // Gebruik de nieuwe functie met geocoding
+                await saveRouteWithGeocode(this.params.id, routeData);
+                closeModal();
+                
+            } catch (error) {
+                console.error('Error saving route:', error);
+                alert(error.message || 'Er is iets misgegaan bij het opslaan van de route.');
+            } finally {
+                document.getElementById('loading-spinner').classList.add('hidden');
+            }
+        };
+        
+        // Event listeners
+        form.addEventListener('submit', handleSubmit);
+        
+        const closeBtn = modal.querySelector('.close-modal');
+        const cancelBtn = document.getElementById('cancel-route');
+        
+        closeBtn.addEventListener('click', closeModal);
+        cancelBtn.addEventListener('click', closeModal);
+        
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
     }
-    
-    // Modal tonen
-    modal.classList.remove('hidden');
-    
-    // Event handlers
-    const closeModal = () => {
-        modal.classList.add('hidden');
-        form.removeEventListener('submit', handleSubmit);
-    };
-    
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        
-        try {
-            document.getElementById('loading-spinner').classList.remove('hidden');
-            
-            const routeData = {
-                name: nameInput.value,
-                destStreet: streetInput.value,
-                destNumber: numberInput.value,
-                destPostalCode: postalInput.value,
-                destCity: cityInput.value,
-                destCountry: countryInput.value,
-                description: descriptionInput.value,
-            };
-            
-            if (idInput.value) {
-                routeData.id = idInput.value;
-            }
-            
-            // Gebruik de nieuwe functie met geocoding
-            await saveRouteWithGeocode(this.params.id, routeData);
-            closeModal();
-            
-        } catch (error) {
-            console.error('Error saving route:', error);
-            alert(error.message || 'Er is iets misgegaan bij het opslaan van de route.');
-        } finally {
-            document.getElementById('loading-spinner').classList.add('hidden');
-        }
-    };
-    
-    // Event listeners
-    form.addEventListener('submit', handleSubmit);
-    
-    const closeBtn = modal.querySelector('.close-modal');
-    const cancelBtn = document.getElementById('cancel-route');
-    
-    closeBtn.addEventListener('click', closeModal);
-    cancelBtn.addEventListener('click', closeModal);
-    
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) closeModal();
-    });
-}
 
-// Kaart updaten met routes
-updateMapWithRoutes(project, routes) {
-    if (!this.map) return;
-    
-    // Verwijder bestaande route lijnen
-    this.map.eachLayer((layer) => {
-        if (layer instanceof L.Polyline || 
-            (layer instanceof L.Marker && 
-             !layer._popup?.getContent().includes('Start'))) {
-            this.map.removeLayer(layer);
-        }
-    });
-    
-    // Als er geen routes zijn, toon alleen de standaard kaart
-    if (routes.length === 0) return;
-    
-    // Startpunt (project locatie)
-    const startLat = project.location.coordinates?.lat || 50.981728;
-    const startLng = project.location.coordinates?.lng || 4.127903;
-    
-    // Huidige geselecteerde route
-    const currentRoute = routes[this.currentRouteIndex] || routes[0];
-    if (!currentRoute) return;
-    
-    // Eindpunt coördinaten
-    const destLat = currentRoute.destination?.coordinates?.lat || 51.2194;
-    const destLng = currentRoute.destination?.coordinates?.lng || 4.4025;
-    
-    // Voeg route-marker toe
-    const destinationMarker = L.marker([destLat, destLng])
-        .addTo(this.map)
-        .bindPopup(`
-            <div class="text-center">
-                <strong>Bestemming: ${currentRoute.name}</strong><br>
-                ${currentRoute.destination?.street || ''} ${currentRoute.destination?.number || ''}<br>
-                ${currentRoute.destination?.postalCode || ''} ${currentRoute.destination?.city || ''}
-            </div>
-        `);
-    
-    // Teken een lijn van start naar bestemming
-    const routeLine = L.polyline(
-        [
-            [startLat, startLng],
-            [destLat, destLng]
-        ],
-        {
-            color: '#6B46C1', // Paars voor de volledige route
-            weight: 3,
-            opacity: 0.6,
-            dashArray: '5, 5' // Gestippelde lijn
-        }
-    ).addTo(this.map);
-    
-    // Pas kaartweergave aan om alles te tonen
-    const bounds = routeLine.getBounds();
-    this.map.fitBounds(bounds, { padding: [50, 50] });
-    
-    // Als er waypoints zijn (dagelijkse wandelingen), toon die
-    if (currentRoute.waypoints && currentRoute.waypoints.length > 0) {
-        // Voeg alle waypoints toe
-        const waypoints = [
-            [startLat, startLng], 
-            ...currentRoute.waypoints.map(wp => [wp.coordinates.lat, wp.coordinates.lng])
-        ];
+    // Kaart updaten met routes
+    updateMapWithRoutes(project, routes) {
+        if (!this.map) return;
         
-        // Teken de afgelegde route
-        const waypointLine = L.polyline(
-            waypoints,
-            {
-                color: '#3B82F6', // Blauw voor de voortgang
-                weight: 5,
-                opacity: 0.8
+        // Verwijder bestaande route lijnen
+        this.map.eachLayer((layer) => {
+            if (layer instanceof L.Polyline || 
+                (layer instanceof L.Marker && 
+                 !layer._popup?.getContent().includes('Start'))) {
+                this.map.removeLayer(layer);
             }
-        ).addTo(this.map);
+        });
         
-        // Voeg marker voor laatste positie toe
-        const lastWaypoint = currentRoute.waypoints[currentRoute.waypoints.length - 1];
-        L.marker([lastWaypoint.coordinates.lat, lastWaypoint.coordinates.lng])
+        // Als er geen routes zijn, toon alleen de standaard kaart
+        if (routes.length === 0) return;
+        
+        // Startpunt (project locatie)
+        const startLat = project.location.coordinates?.lat || 50.981728;
+        const startLng = project.location.coordinates?.lng || 4.127903;
+        
+        // Huidige geselecteerde route
+        const currentRoute = routes[this.currentRouteIndex] || routes[0];
+        if (!currentRoute) return;
+        
+        // Eindpunt coördinaten
+        const destLat = currentRoute.destination?.coordinates?.lat || 51.2194;
+        const destLng = currentRoute.destination?.coordinates?.lng || 4.4025;
+        
+        // Voeg route-marker toe
+        const destinationMarker = L.marker([destLat, destLng])
             .addTo(this.map)
             .bindPopup(`
                 <div class="text-center">
-                    <strong>Huidige positie</strong><br>
-                    ${lastWaypoint.date}<br>
-                    ${lastWaypoint.description || ''}
+                    <strong>Bestemming: ${currentRoute.name}</strong><br>
+                    ${currentRoute.destination?.street || ''} ${currentRoute.destination?.number || ''}<br>
+                    ${currentRoute.destination?.postalCode || ''} ${currentRoute.destination?.city || ''}
                 </div>
             `);
-    } else {
-        // Als er geen waypoints zijn, toon alleen startpunt
-        const totalDistanceElement = document.getElementById('total-distance');
-        if (totalDistanceElement) {
-            const totalDistanceText = totalDistanceElement.textContent;
-            const totalDistance = parseFloat(totalDistanceText.match(/[\d.]+/)[0]) || 0;
+        
+        // Teken een lijn van start naar bestemming
+        const routeLine = L.polyline(
+            [
+                [startLat, startLng],
+                [destLat, destLng]
+            ],
+            {
+                color: '#6B46C1', // Paars voor de volledige route
+                weight: 3,
+                opacity: 0.6,
+                dashArray: '5, 5' // Gestippelde lijn
+            }
+        ).addTo(this.map);
+        
+        // Pas kaartweergave aan om alles te tonen
+        const bounds = routeLine.getBounds();
+        this.map.fitBounds(bounds, { padding: [50, 50] });
+        
+        // Als er waypoints zijn (dagelijkse wandelingen), toon die
+        if (currentRoute.waypoints && currentRoute.waypoints.length > 0) {
+            // Voeg alle waypoints toe
+            const waypoints = [
+                [startLat, startLng], 
+                ...currentRoute.waypoints.map(wp => [wp.coordinates.lat, wp.coordinates.lng])
+            ];
             
-            if (totalDistance > 0) {
-                // Bereken positie op route
-                const routeDistance = this.calculateDistance(
-                    startLat, startLng,
-                    destLat, destLng
-                );
+            // Teken de afgelegde route
+            const waypointLine = L.polyline(
+                waypoints,
+                {
+                    color: '#3B82F6', // Blauw voor de voortgang
+                    weight: 5,
+                    opacity: 0.8
+                }
+            ).addTo(this.map);
+            
+            // Voeg marker voor laatste positie toe
+            const lastWaypoint = currentRoute.waypoints[currentRoute.waypoints.length - 1];
+            L.marker([lastWaypoint.coordinates.lat, lastWaypoint.coordinates.lng])
+                .addTo(this.map)
+                .bindPopup(`
+                    <div class="text-center">
+                        <strong>Huidige positie</strong><br>
+                        ${lastWaypoint.date}<br>
+                        ${lastWaypoint.description || ''}
+                    </div>
+                `);
+        } else {
+            // Als er geen waypoints zijn, toon alleen startpunt
+            const totalDistanceElement = document.getElementById('total-distance');
+            if (totalDistanceElement) {
+                const totalDistanceText = totalDistanceElement.textContent;
+                const totalDistance = parseFloat(totalDistanceText.match(/[\d.]+/)[0]) || 0;
                 
-                const progress = Math.min(1, totalDistance / routeDistance);
-                
-                // Bereken huidige punt op de route
-                const currentLat = startLat + (destLat - startLat) * progress;
-                const currentLng = startLng + (destLng - startLng) * progress;
-                
-                // Voeg voortgangs-lijn toe
-                const progressLine = L.polyline(
-                    [
-                        [startLat, startLng],
-                        [currentLat, currentLng]
-                    ],
-                    {
-                        color: '#3B82F6', // Blauw voor de voortgang
-                        weight: 5,
-                        opacity: 0.8
-                    }
-                ).addTo(this.map);
-                
-                // Voeg marker voor huidige positie toe
-                L.marker([currentLat, currentLng])
-                    .addTo(this.map)
-                    .bindPopup(`
-                        <div class="text-center">
-                            <strong>Huidige positie</strong><br>
-                            ${totalDistance.toFixed(1)} km vanaf start<br>
-                            ${(progress * 100).toFixed(1)}% voltooid
-                        </div>
-                    `)
-                    .openPopup();
+                if (totalDistance > 0) {
+                    // Bereken positie op route
+                    const routeDistance = this.calculateDistance(
+                        startLat, startLng,
+                        destLat, destLng
+                    );
+                    
+                    const progress = Math.min(1, totalDistance / routeDistance);
+                    
+                    // Bereken huidige punt op de route
+                    const currentLat = startLat + (destLat - startLat) * progress;
+                    const currentLng = startLng + (destLng - startLng) * progress;
+                    
+                    // Voeg voortgangs-lijn toe
+                    const progressLine = L.polyline(
+                        [
+                            [startLat, startLng],
+                            [currentLat, currentLng]
+                        ],
+                        {
+                            color: '#3B82F6', // Blauw voor de voortgang
+                            weight: 5,
+                            opacity: 0.8
+                        }
+                    ).addTo(this.map);
+                    
+                    // Voeg marker voor huidige positie toe
+                    L.marker([currentLat, currentLng])
+                        .addTo(this.map)
+                        .bindPopup(`
+                            <div class="text-center">
+                                <strong>Huidige positie</strong><br>
+                                ${totalDistance.toFixed(1)} km vanaf start<br>
+                                ${(progress * 100).toFixed(1)}% voltooid
+                            </div>
+                        `)
+                        .openPopup();
+                }
             }
         }
     }
-}
     
     // Helper functie om afstand te berekenen (in km)
     calculateDistance(lat1, lon1, lat2, lon2) {
