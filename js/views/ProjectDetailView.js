@@ -277,79 +277,33 @@ goalForm.addEventListener('submit', async (e) => {
         }
     }
 
-    initializeMap(project) {
-        const mapDiv = document.getElementById('map');
-        if (!mapDiv || this.map) return;
+initializeMap(project) {
+    const mapDiv = document.getElementById('map');
+    if (!mapDiv || this.map) return;
 
-        // Startpunt (project locatie)
-        const startLat = 50.981728;  // Dit zou eigenlijk uit project.location moeten komen
-        const startLng = 4.127903;
+    // Startpunt (project locatie)
+    const startLat = project.location.coordinates?.lat || 50.981728;
+    const startLng = project.location.coordinates?.lng || 4.127903;
 
-        // Als er een doel is, centreer de kaart tussen start en eindpunt
-        if (project.goal) {
-            // Voor nu gebruiken we vaste coördinaten voor het doel
-            // TODO: Deze moeten we via een geocoding service ophalen
-            const endLat = 51.2194475;  // Voorbeeld: Brussel
-            const endLng = 4.4024643;
+    // Initialiseer de kaart
+    this.map = L.map('map').setView([startLat, startLng], 13);
 
-            // Bereken het middelpunt voor de kaartweergave
-            const centerLat = (startLat + endLat) / 2;
-            const centerLng = (startLng + endLng) / 2;
+    // Voeg de OpenStreetMap tile layer toe
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(this.map);
 
-            this.map = L.map('map').setView([centerLat, centerLng], 10);
-        } else {
-            // Als er geen doel is, centreer op het startpunt
-            this.map = L.map('map').setView([startLat, startLng], 13);
-        }
-
-        // Voeg de OpenStreetMap tile layer toe
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
-        }).addTo(this.map);
-
-        // Voeg marker toe voor startpunt
-        const startMarker = L.marker([startLat, startLng])
-            .addTo(this.map)
-            .bindPopup(`
-                <div class="text-center">
-                    <strong>Start</strong><br>
-                    ${project.location.street} ${project.location.number},<br>
-                    ${project.location.postalCode} ${project.location.city}
-                </div>
-            `);
-
-        // Als er een doel is, voeg eindpunt toe en teken een lijn
-        if (project.goal) {
-            const endLat = 51.2194475;  // Voorbeeld: Brussel
-            const endLng = 4.4024643;
-
-            // Voeg marker toe voor eindpunt
-            const endMarker = L.marker([endLat, endLng])
-                .addTo(this.map)
-                .bindPopup(`
-                    <div class="text-center">
-                        <strong>Doel</strong><br>
-                        ${project.goal.city}
-                    </div>
-                `);
-
-            // Teken een lijn tussen start- en eindpunt
-            const pathLine = L.polyline(
-                [
-                    [startLat, startLng],
-                    [endLat, endLng]
-                ],
-                {
-                    color: '#3B82F6',
-                    weight: 4,
-                    opacity: 0.8
-                }
-            ).addTo(this.map);
-
-            // Pas kaartweergave aan om beide punten te tonen
-            this.map.fitBounds(pathLine.getBounds(), { padding: [50, 50] });
-        }
-    }
+    // Voeg marker toe voor startpunt
+    const startMarker = L.marker([startLat, startLng])
+        .addTo(this.map)
+        .bindPopup(`
+            <div class="text-center">
+                <strong>Start</strong><br>
+                ${project.location.street} ${project.location.number},<br>
+                ${project.location.postalCode} ${project.location.city}
+            </div>
+        `);
+}
 
     async updateMapPath(project, totalDistance) {
         if (!this.map || !this.routes || this.routes.length === 0) {
