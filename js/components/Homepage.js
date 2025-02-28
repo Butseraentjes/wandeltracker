@@ -1,4 +1,5 @@
 import { loginWithGoogle } from '../lib/firebase.js';
+import { initializeImageLoader } from '../lib/imageLoader.js';
 
 const Homepage = () => {
   const handleLoginClick = async () => {
@@ -12,6 +13,39 @@ const Homepage = () => {
       document.getElementById('loading-spinner').classList.add('hidden');
     }
   };
+
+  // React.useEffect voor het laden van afbeeldingen na het renderen
+  React.useEffect(() => {
+    // Voer dit uit na het renderen
+    setTimeout(() => {
+      const lazyImages = document.querySelectorAll('img[data-src]');
+      
+      lazyImages.forEach(img => {
+        const src = img.getAttribute('data-src');
+        
+        // Probeer de afbeelding te laden
+        const testImage = new Image();
+        
+        testImage.onload = function() {
+          // Afbeelding is geladen
+          img.src = src;
+          img.style.display = 'block';
+          
+          // Verberg placeholder
+          const placeholder = img.parentElement.querySelector('.flex.items-center');
+          if (placeholder) {
+            placeholder.style.display = 'none';
+          }
+        };
+        
+        testImage.onerror = function() {
+          console.warn(`Kon afbeelding niet laden: ${src}`);
+        };
+        
+        testImage.src = src;
+      });
+    }, 100);
+  }, []);
 
   // Landmarks array voor de afbeeldingsweergave
   const landmarks = [
@@ -29,7 +63,7 @@ const Homepage = () => {
       React.createElement('div', { 
         className: 'w-full h-96 bg-cover bg-center',
         style: { 
-          backgroundImage: 'url("../assets/banner.png")',
+          backgroundImage: 'url("assets/banner.png")',
           backgroundColor: '#1a365d' // Fallback achtergrond als de afbeelding niet laadt
         }
       },
@@ -104,21 +138,20 @@ const Homepage = () => {
               key: index, 
               className: 'bg-white rounded-lg shadow-md overflow-hidden'
             },
-              // Hier houden we de img tag, maar we geven een placeholder data-src attribuut om de bedoeling duidelijk te maken
               React.createElement('div', { 
                 className: 'h-48 bg-gray-200 overflow-hidden',
                 style: { position: 'relative' }
               }, 
-                // Placeholder voor afbeelding die niet geladen kan worden
+                // Placeholder die zichtbaar is als afbeelding niet laadt
                 React.createElement('div', {
                   className: 'absolute inset-0 flex items-center justify-center text-gray-500 bg-gray-200'
                 }, landmark.name),
-                // De echte img tag met data-src zodat duidelijk is wat je bedoeling is
+                // De img tag met correcte data-src path (direct naar assets folder)
                 React.createElement('img', {
-                  'data-src': `../assets/${landmark.file}`,
+                  'data-src': `assets/${landmark.file}`,
                   alt: landmark.name,
                   className: 'w-full h-full object-cover',
-                  style: { display: 'none' } // Verborgen in deze demo
+                  style: { display: 'none' } // begint verborgen, wordt zichtbaar na laden
                 })
               ),
               React.createElement('div', { className: 'p-4' },
