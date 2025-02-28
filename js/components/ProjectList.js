@@ -61,50 +61,39 @@ const ProjectList = () => {
             );
         }
 
-        return React.createElement(
-            'div',
-            { className: 'grid gap-4 md:grid-cols-2 lg:grid-cols-3' },
-            projects.map(project => {
-                try {
-                    const location = project.location || {};
-                    const createdAt = project.createdAt ? 
-                        (typeof project.createdAt.toDate === 'function' ? 
-                            project.createdAt.toDate().toLocaleDateString() : 
-                            new Date(project.createdAt).toLocaleDateString())
-                        : 'Onbekende datum';
+return React.createElement(
+        'div',
+        { className: 'grid gap-4 md:grid-cols-2 lg:grid-cols-3' },
+        projects.map(project => {
+            try {
+                const location = project.location || {};
+                const createdAt = // ... (je bestaande code)
 
-                    return React.createElement(
-                        'div',
-                        {
-                            key: project.id || Math.random(),
-                            className: 'bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow'
-                        },
-                        [
-                            React.createElement('h3', 
-                                { className: 'text-lg font-semibold mb-2' },
-                                project.name || 'Naamloos project'
-                            ),
-                            React.createElement('p',
-                                { className: 'text-gray-600 text-sm mb-2' },
-                                `${location.street || ''} ${location.number || ''}, ${location.postalCode || ''} ${location.city || ''}`
-                            ),
-                            project.description && React.createElement('p',
-                                { className: 'text-gray-700 mb-4' },
-                                project.description
-                            ),
-                            React.createElement('div',
-                                { className: 'text-sm text-gray-500' },
-                                `Aangemaakt op: ${createdAt}`
-                            )
-                        ]
-                    );
-                } catch (err) {
-                    console.error('Error rendering project:', err, project);
-                    return null;
-                }
-            }).filter(Boolean)
-        );
-    }, [loading, error, projects]);
+                return React.createElement(
+                    'div',
+                    {
+                        key: project.id || Math.random(),
+                        onClick: () => handleProjectClick(project.id),
+                        className: 'bg-white p-6 rounded-xl shadow-md hover:shadow-xl transition-all cursor-pointer border-l-4 border-orange-500'
+                    },
+                    [
+                        React.createElement('h3', 
+                            { 
+                                key: 'title',
+                                className: 'text-xl font-semibold mb-3 text-orange-600' 
+                            },
+                            project.name || 'Naamloos project'
+                        ),
+                        // Rest van je projectkaart elementen
+                    ]
+                );
+            } catch (err) {
+                console.error('Error rendering project:', err, project);
+                return null;
+            }
+        }).filter(Boolean)
+    );
+}, [loading, error, projects]);
 
     return renderedContent;
 };
