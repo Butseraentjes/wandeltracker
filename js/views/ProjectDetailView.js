@@ -50,89 +50,164 @@ export class ProjectDetailView extends View {
         }
     }
 
-    async render() {
-        console.log('ProjectDetailView render start');
+// Deze functie bevat enkel de render-methode van ProjectDetailView met verbeterde styling
+// Deze code moet worden geïntegreerd in de bestaande ProjectDetailView.js
 
-        const projectId = this.params.id;
+async render() {
+    console.log('ProjectDetailView render start');
 
-        if (!projectId) {
-            return `
-                <div class="error-container">
-                    <h2>Project niet gevonden</h2>
-                    <p>Ga terug naar <a href="/" data-route="/">projecten</a></p>
+    const projectId = this.params.id;
+
+    if (!projectId) {
+        return `
+            <div class="flex flex-col items-center justify-center py-12">
+                <div class="text-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-20 w-20 text-orange-500 mx-auto mb-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <h2 class="text-2xl font-bold mb-4">Project niet gevonden</h2>
+                    <p class="text-gray-600 mb-8">Het project dat je zoekt bestaat niet of is verwijderd.</p>
+                    <a href="/" data-route="/" class="primary-btn inline-flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2">
+                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                        </svg>
+                        Terug naar projecten
+                    </a>
                 </div>
-            `;
-        }
+            </div>
+        `;
+    }
 
-        try {
-            const mainContent = document.getElementById('main-content');
-            mainContent.innerHTML = `
-                <div class="project-detail p-4">
-                    <div class="project-header mb-6">
-                        <h2>Project wordt geladen...</h2>
-                    </div>
-                    <div class="project-content grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="calendar-section bg-white p-6 rounded-lg shadow">
-                            <div class="flex flex-col gap-4">
-                                <div class="flex justify-between items-center">
-                                    <div>
-                                        <h3 class="text-lg font-semibold">Wandelingen</h3>
-                                        <p id="total-distance" class="text-sm text-gray-600">Totale afstand wordt berekend...</p>
-                                    </div>
-                                    <button id="add-walk-btn" class="text-blue-600 hover:text-blue-800">
-                                        + Nieuwe wandeling
-                                    </button>
-                                </div>
+    try {
+        const mainContent = document.getElementById('main-content');
+        mainContent.innerHTML = `
+            <div class="project-detail">
+                <div class="project-header">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 flex items-center justify-center text-white font-bold text-xl mr-4">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M3 17l6-6"></path>
+                                    <path d="M10 16l4-4"></path>
+                                    <path d="M15 15l5-5"></path>
+                                    <path d="M19 15v5h-5"></path>
+                                </svg>
                             </div>
-                            <div id="calendar" class="fc"></div>
+                            <div>
+                                <h2 class="text-2xl font-bold">Project wordt geladen...</h2>
+                                <p class="text-gray-500">Details worden opgehaald...</p>
+                            </div>
                         </div>
-                        <div class="map-section bg-white p-6 rounded-lg shadow">
-                            <div class="flex justify-between items-center mb-4">
-                                <h3 class="text-lg font-semibold">Routes</h3>
-                                <button id="add-route-btn" class="text-blue-600 hover:text-blue-800">
-                                    + Nieuwe route
+                        <a href="/" data-route="/" class="secondary-btn inline-flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1">
+                                <path d="M19 12H5"></path>
+                                <path d="M12 19l-7-7 7-7"></path>
+                            </svg>
+                            Terug naar projecten
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Stats Overview -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                    <div class="bg-white p-4 rounded-xl shadow-md flex items-center">
+                        <div class="h-12 w-12 rounded-full bg-orange-100 flex items-center justify-center mr-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M18 6L6 18"></path>
+                                <path d="M6 6l12 12"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-gray-500 text-sm">Totale afstand</p>
+                            <p id="total-distance" class="text-lg font-semibold">Wordt berekend...</p>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-4 rounded-xl shadow-md flex items-center">
+                        <div class="h-12 w-12 rounded-full bg-orange-100 flex items-center justify-center mr-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-gray-500 text-sm">Wandelingen</p>
+                            <p id="walks-count" class="text-lg font-semibold">0</p>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-4 rounded-xl shadow-md flex items-center">
+                        <div class="h-12 w-12 rounded-full bg-orange-100 flex items-center justify-center mr-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-gray-500 text-sm">Routes</p>
+                            <p id="routes-count" class="text-lg font-semibold">0</p>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-4 rounded-xl shadow-md flex items-center">
+                        <div class="h-12 w-12 rounded-full bg-orange-100 flex items-center justify-center mr-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0-18 0"></path>
+                                <path d="M12 7v5l2.5 2.5"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-gray-500 text-sm">Laatste wandeling</p>
+                            <p id="last-walk-date" class="text-lg font-semibold">-</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="project-content grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="calendar-section bg-white rounded-xl shadow-md overflow-hidden">
+                        <div class="p-6 border-b border-gray-100">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <h3 class="text-lg font-semibold">Wandelingen</h3>
+                                    <p class="text-sm text-gray-500">Klik op een datum om een wandeling toe te voegen</p>
+                                </div>
+                                <button id="add-walk-btn" class="primary-btn inline-flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1">
+                                        <path d="M12 5v14"></path>
+                                        <path d="M5 12h14"></path>
+                                    </svg>
+                                    Nieuwe wandeling
                                 </button>
                             </div>
-                            <div id="routes-container" class="mb-4">
-                                <p class="text-gray-600 text-sm mb-2">Routes worden geladen...</p>
-                            </div>
-                            <div id="map" style="height: 400px;"></div>
                         </div>
+                        <div id="calendar" class="fc p-4"></div>
                     </div>
-                </div>
-            `;
-
-            this.unsubscribeProject = subscribeToProject(projectId, (project) => {
-                if (!project) {
-                    mainContent.innerHTML = `
-                        <div class="error-container">
-                            <h2>Project niet gevonden</h2>
-                            <p>Ga terug naar <a href="/" data-route="/">projecten</a></p>
+                    
+                    <div class="map-section bg-white rounded-xl shadow-md overflow-hidden">
+                        <div class="p-6 border-b border-gray-100">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <h3 class="text-lg font-semibold">Routes</h3>
+                                    <p class="text-sm text-gray-500">Beheer je wandelroutes</p>
+                                </div>
+                                <button id="add-route-btn" class="primary-btn inline-flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1">
+                                        <path d="M12 5v14"></path>
+                                        <path d="M5 12h14"></path>
+                                    </svg>
+                                    Nieuwe route
+                                </button>
+                            </div>
                         </div>
-                    `;
-                    return;
-                }
-
-                const header = document.querySelector('.project-header');
-if (header) {
-    header.innerHTML = `
-        <div class="flex justify-between items-center">
-            <div>
-                <h2 class="text-2xl font-bold">${project.name}</h2>
-                <p class="text-gray-600">
-                    ${project.location.street} ${project.location.number}, 
-                    ${project.location.postalCode} ${project.location.city}
-                </p>
-                ${project.description ? `<p class="mt-2">${project.description}</p>` : ''}
-                <div class="mt-4"></div>
-            </div>
-            <a href="/" data-route="/" class="text-blue-600 hover:text-blue-800">
-                ← Terug naar projecten
-            </a>
-        </div>
-    `;
-}
-
+                        <div class="p-4">
+                            <div id="routes-container" class="mb-4">
+                                <div class="flex justify-center items-center p-4 text-gray-500">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                    </svg>
+                                    Routes worden geladen...
+                                </div>
 
 
                 // Goal modal event listeners
