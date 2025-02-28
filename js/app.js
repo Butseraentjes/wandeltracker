@@ -392,3 +392,118 @@ document.addEventListener('DOMContentLoaded', () => {
             totalDistanceElement.textContent = `${totalDistance} km`;
             totalWalksElement.textContent = totalWalks;
         }
+
+
+        <!-- Project Modal -->
+<div id="project-modal" class="modal hidden">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Nieuw Project</h3>
+            <button class="close-modal">&times;</button>
+        </div>
+        <form id="project-form">
+            <div class="form-group">
+                <label for="project-name">Projectnaam</label>
+                <input type="text" id="project-name" required placeholder="Bijv. Wandelen naar Parijs">
+            </div>
+            <div class="form-group">
+                <label for="project-location">Startlocatie</label>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="col-span-2">
+                        <input type="text" id="project-street" placeholder="Straat" required>
+                    </div>
+                    <div>
+                        <input type="text" id="project-number" placeholder="Nummer" required>
+                    </div>
+                    <div>
+                        <input type="text" id="project-postal" placeholder="Postcode" required>
+                    </div>
+                    <div class="col-span-2">
+                        <input type="text" id="project-city" placeholder="Gemeente" required>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="project-description">Beschrijving (optioneel)</label>
+                <textarea id="project-description" placeholder="Bijv. Dagelijkse wandelingen richting Parijs" rows="3"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="secondary-btn" id="cancel-project">Annuleren</button>
+                <button type="submit" class="primary-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                        <polyline points="7 3 7 8 15 8"></polyline>
+                    </svg>
+                    Project Aanmaken
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Walk Modal -->
+<div id="walk-modal" class="modal hidden">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Wandeling Toevoegen</h3>
+            <button class="close-modal">&times;</button>
+        </div>
+        <form id="walk-form">
+            <div class="form-group">
+                <label for="walk-date">Datum</label>
+                <input type="text" id="walk-date" readonly class="bg-gray-50 cursor-not-allowed">
+                <p class="text-sm text-gray-500 mt-1">De geselecteerde datum is vastgezet</p>
+            </div>
+            <div class="form-group">
+                <label for="walk-distance">Aantal kilometers</label>
+                <div class="flex items-center">
+                    <input type="number" id="walk-distance" step="0.1" min="0" required class="mr-2">
+                    <span class="text-gray-600">km</span>
+                </div>
+                <p class="text-sm text-gray-500 mt-1">Voer de afstand in die je vandaag hebt gewandeld</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="secondary-btn" id="cancel-walk">Annuleren</button>
+                <button type="submit" class="primary-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                        <polyline points="7 3 7 8 15 8"></polyline>
+                    </svg>
+                    Opslaan
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Goal Modal -->
+<div id="goal-modal" class="modal hidden">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Voeg een doel toe</h3>
+            <button class="close-modal">&times;</button>
+        </div>
+        <form id="goal-form">
+            <div class="form-group">
+                <label for="goal-city">Gemeente / Stad</label>
+                <input type="text" id="goal-city" required placeholder="Bijv. Parijs, Rome, Barcelona">
+                <p class="text-sm text-gray-500 mt-1">Voer de bestemming in waar je naartoe wilt wandelen</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="secondary-btn" id="cancel-goal">Annuleren</button>
+                <button type="submit" class="primary-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="8" x2="12" y2="16"></line>
+                        <line x1="8" y1="12" x2="16" y2="12"></line>
+                    </svg>
+                    Opslaan
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
