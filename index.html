@@ -140,23 +140,40 @@
             <input type="hidden" id="route-id">
             <div class="form-group">
                 <label for="route-name">Naam van de route</label>
-                <input type="text" id="route-name" required>
+                <input type="text" id="route-name" required placeholder="Bijv. Weekendwandeling naar de kust">
             </div>
             <div class="form-group">
                 <label for="route-destination">Eindbestemming</label>
-                <input type="text" id="route-dest-street" placeholder="Straat" required>
-                <input type="text" id="route-dest-number" placeholder="Nummer" required>
-                <input type="text" id="route-dest-postal" placeholder="Postcode" required>
-                <input type="text" id="route-dest-city" placeholder="Gemeente" required>
-                <input type="text" id="route-dest-country" placeholder="Land" value="Belgium">
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="col-span-2">
+                        <input type="text" id="route-dest-street" placeholder="Straat" required>
+                    </div>
+                    <div>
+                        <input type="text" id="route-dest-number" placeholder="Nummer" required>
+                    </div>
+                    <div>
+                        <input type="text" id="route-dest-postal" placeholder="Postcode" required>
+                    </div>
+                    <div>
+                        <input type="text" id="route-dest-city" placeholder="Gemeente" required>
+                    </div>
+                    <div>
+                        <input type="text" id="route-dest-country" placeholder="Land" value="Belgium">
+                    </div>
+                </div>
             </div>
             <div class="form-group">
                 <label for="route-description">Beschrijving (optioneel)</label>
-                <textarea id="route-description"></textarea>
+                <textarea id="route-description" placeholder="Bijv. Een mooie route langs de kustlijn" rows="3"></textarea>
             </div>
             <div class="modal-footer">
                 <button type="button" class="secondary-btn" id="cancel-route">Annuleren</button>
-                <button type="submit" class="primary-btn" id="save-route-btn">Route Opslaan</button>
+                <button type="submit" class="primary-btn" id="save-route-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                    Route Opslaan
+                </button>
             </div>
         </form>
     </div>
