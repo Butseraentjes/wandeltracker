@@ -1,4 +1,321 @@
-// Feature 1
+import { loginWithGoogle } from '../lib/firebase.js';
+
+const Homepage = () => {
+  const handleLoginClick = async () => {
+    try {
+      document.getElementById('loading-spinner').classList.remove('hidden');
+      await loginWithGoogle();
+    } catch (error) {
+      console.error('Login failed:', error);
+      alert('Inloggen mislukt. Probeer het opnieuw.');
+    } finally {
+      document.getElementById('loading-spinner').classList.add('hidden');
+    }
+  };
+
+  // React hooks voor animatie-effecten
+  React.useEffect(() => {
+    // Lazy loading voor afbeeldingen
+    const lazyImages = document.querySelectorAll('img[data-src]');
+    lazyImages.forEach(img => {
+      const src = img.getAttribute('data-src');
+      const testImage = new Image();
+      testImage.onload = function() {
+        img.src = src;
+        img.style.display = 'block';
+        img.classList.add('fade-in');
+        const placeholder = img.parentElement.querySelector('.placeholder');
+        if (placeholder) placeholder.style.display = 'none';
+      };
+      testImage.onerror = () => console.warn(`Kon afbeelding niet laden: ${src}`);
+      testImage.src = src;
+    });
+
+    // Scroll animaties voor elementen
+    const animateOnScroll = () => {
+      const elements = document.querySelectorAll('.scroll-animate');
+      elements.forEach(el => {
+        const rect = el.getBoundingClientRect();
+        const isVisible = (rect.top <= window.innerHeight * 0.8);
+        if (isVisible) {
+          el.classList.add('animate');
+        }
+      });
+    };
+
+    // Header aanpassen bij scrollen
+    const header = document.querySelector('header');
+    const handleScroll = () => {
+      if (window.scrollY > 50) {
+        header.classList.add('scrolled');
+      } else {
+        header.classList.remove('scrolled');
+      }
+      animateOnScroll();
+    };
+
+    // Voeg scroll event listener toe
+    window.addEventListener('scroll', handleScroll);
+    
+    // Trigger bij eerste load
+    setTimeout(animateOnScroll, 100);
+
+    // Cleanup functie
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
+  // Landmarks array voor de afbeeldingsweergave
+  const landmarks = [
+    { file: 'colosseum-rome.jpeg', name: 'Colosseum, Rome', distance: '1.437 km' },
+    { file: 'acropolis-athene.jpeg', name: 'Acropolis, Athene', distance: '2.090 km' },
+    { file: 'sagrada-familia-barcelona.jpeg', name: 'Sagrada Familia, Barcelona', distance: '1.275 km' },
+    { file: 'cliffs-Moher-Ireland.jpeg', name: 'Cliffs of Moher, Ierland', distance: '1.021 km' },
+    { file: 'Neuschwanstein-Castle.jpeg', name: 'Neuschwanstein Kasteel, Duitsland', distance: '692 km' },
+    { file: 'parijs.jpeg', name: 'Eiffeltoren, Parijs', distance: '316 km' },
+  ];
+  
+  // Menu-items voor hoofdnavigatie
+  const navItems = [
+    { name: 'Home', url: '/' },
+    { name: 'Hoe het werkt', url: '#features' },
+    { name: 'Bestemmingen', url: '#destinations' },
+    { name: 'Prijzen', url: '#pricing' },
+    { name: 'Over ons', url: '#about' },
+    { name: 'Contact', url: '#contact' }
+  ];
+
+  return React.createElement('div', { className: 'min-h-screen' },
+    // Header/Navigatie
+    React.createElement('header', { 
+      className: 'fixed top-0 left-0 right-0 z-50 bg-white shadow-md px-6 py-4'
+    },
+      React.createElement('div', { 
+        className: 'container mx-auto flex flex-wrap justify-between items-center'
+      },
+        // Logo
+        React.createElement('a', { 
+          href: '/', 
+          className: 'flex items-center'
+        },
+          React.createElement('span', { 
+            className: 'text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-amber-600'
+          }, 'WandelTracker')
+        ),
+        
+        // Navigatie
+        React.createElement('nav', { 
+          className: 'hidden md:flex items-center space-x-6 text-gray-700'
+        },
+          navItems.map((item, index) => 
+            React.createElement('a', { 
+              key: index, 
+              href: item.url, 
+              className: 'hover:text-orange-500 transition-colors font-medium' 
+            }, item.name)
+          )
+        ),
+        
+        // Mobile menu button
+        React.createElement('div', { className: 'md:hidden flex items-center' },
+          React.createElement('button', { 
+            className: 'text-gray-700 hover:text-orange-500 focus:outline-none'
+          },
+            React.createElement('svg', { 
+              className: 'w-6 h-6', 
+              fill: 'none', 
+              stroke: 'currentColor', 
+              viewBox: '0 0 24 24'
+            },
+              React.createElement('path', { 
+                strokeLinecap: 'round', 
+                strokeLinejoin: 'round', 
+                strokeWidth: 2, 
+                d: 'M4 6h16M4 12h16m-7 6h7' 
+              })
+            )
+          )
+        )
+      )
+    ),
+
+    // Hero Section met Banner
+    React.createElement('section', { 
+      className: 'pt-28 bg-gradient-to-b from-orange-600 via-amber-500 to-orange-50 relative overflow-hidden'
+    },
+      // Achtergrondeffecten
+      React.createElement('div', { 
+        className: 'absolute inset-0 overflow-hidden'
+      },
+        // Banner afbeelding
+        React.createElement('div', {
+          className: 'absolute inset-0 z-0 opacity-20',
+          style: { 
+            backgroundImage: 'url("assets/banner.png")',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            filter: 'blur(2px)'
+          }
+        }),
+        // Decoratieve elementen
+        React.createElement('div', { 
+          className: 'absolute w-64 h-64 rounded-full bg-yellow-400 top-1/4 right-0 -mr-32 opacity-20' 
+        }),
+        React.createElement('div', { 
+          className: 'absolute w-96 h-96 rounded-full bg-orange-300 bottom-0 left-0 -ml-40 -mb-24 opacity-20' 
+        })
+      ),
+
+      // Content container
+      React.createElement('div', { 
+        className: 'container mx-auto px-6 py-20 md:py-32 relative z-10' 
+      },
+        React.createElement('div', { 
+          className: 'flex flex-col md:flex-row items-center' 
+        },
+          // Tekst content
+          React.createElement('div', { 
+            className: 'md:w-1/2 text-center md:text-left z-10 mb-12 md:mb-0' 
+          },
+            React.createElement('h1', { 
+              className: 'text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-white leading-tight'
+            }, 
+              'Wandel de wereld rond,',
+              React.createElement('span', { 
+                className: 'block mt-2'
+              }, 'vanuit je eigen buurt')
+            ),
+            React.createElement('p', { 
+              className: 'text-xl text-white opacity-90 mb-8 max-w-lg' 
+            }, 'Volg je dagelijkse wandelingen en ontdek waar je zou zijn als je in één rechte lijn doorwandelde. Van Brussel naar Rome? Van Gent naar Stockholm?'),
+            
+            // CTA Buttons
+            React.createElement('div', { 
+              className: 'flex flex-col sm:flex-row gap-4 justify-center md:justify-start' 
+            },
+              React.createElement('button', {
+                onClick: handleLoginClick,
+                className: 'px-8 py-4 rounded-full bg-white text-orange-600 font-bold text-lg shadow-lg hover:shadow-xl transform transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-orange-300 focus:ring-opacity-50'
+              }, 
+                React.createElement('span', { 
+                  className: 'flex items-center justify-center' 
+                },
+                  'Begin je reis',
+                  React.createElement('svg', { 
+                    className: 'w-5 h-5 ml-2', 
+                    fill: 'none', 
+                    stroke: 'currentColor', 
+                    viewBox: '0 0 24 24'
+                  },
+                    React.createElement('path', { 
+                      strokeLinecap: 'round', 
+                      strokeLinejoin: 'round', 
+                      strokeWidth: 2, 
+                      d: 'M17 8l4 4m0 0l-4 4m4-4H3' 
+                    })
+                  )
+                )
+              ),
+              React.createElement('button', {
+                className: 'px-8 py-4 rounded-full border-2 border-white text-white font-bold text-lg hover:bg-white hover:bg-opacity-10 transition-colors focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50'
+              }, 'Meer informatie')
+            )
+          ),
+          
+          // Hero afbeelding
+          React.createElement('div', { 
+            className: 'md:w-1/2 relative z-10 scroll-animate slide-up' 
+          },
+            React.createElement('div', { 
+              className: 'relative mx-auto max-w-lg' 
+            },
+              React.createElement('div', { 
+                className: 'absolute inset-0 bg-gradient-to-r from-orange-500 to-yellow-500 rounded-2xl transform rotate-6 scale-105 opacity-30 blur-xl' 
+              }),
+              React.createElement('div', { 
+                className: 'bg-white p-6 rounded-2xl shadow-2xl relative z-10' 
+              },
+                React.createElement('div', { 
+                  className: 'bg-gray-100 rounded-xl overflow-hidden mb-4' 
+                },
+                  React.createElement('img', {
+                    src: 'assets/colosseum-rome.jpeg',
+                    alt: 'Colosseum, Rome',
+                    className: 'w-full h-64 object-cover'
+                  })
+                ),
+                React.createElement('h3', { 
+                  className: 'text-xl font-bold text-gray-800 mb-1' 
+                }, 'Rome, Italië'),
+                React.createElement('div', { 
+                  className: 'flex justify-between items-center' 
+                },
+                  React.createElement('span', { 
+                    className: 'text-orange-600 font-medium' 
+                  }, '1.437 km van Brussel'),
+                  React.createElement('div', { 
+                    className: 'bg-orange-100 text-orange-600 rounded-full px-3 py-1 text-sm font-medium' 
+                  }, '324 dagen wandelen')
+                )
+              )
+            )
+          )
+        ),
+        
+        // Scroll indicator
+        React.createElement('div', { 
+          className: 'absolute bottom-8 left-0 right-0 flex justify-center animate-bounce' 
+        },
+          React.createElement('a', { 
+            href: '#features', 
+            className: 'flex items-center justify-center w-10 h-10 rounded-full bg-white bg-opacity-20 backdrop-blur text-white hover:bg-opacity-30' 
+          },
+            React.createElement('svg', { 
+              className: 'w-6 h-6', 
+              fill: 'none', 
+              stroke: 'currentColor', 
+              viewBox: '0 0 24 24'
+            },
+              React.createElement('path', { 
+                strokeLinecap: 'round', 
+                strokeLinejoin: 'round', 
+                strokeWidth: 2, 
+                d: 'M19 14l-7 7m0 0l-7-7m7 7V3' 
+              })
+            )
+          )
+        )
+      )
+    ),
+
+    // Features Section
+    React.createElement('section', { 
+      id: 'features', 
+      className: 'py-20 bg-white' 
+    },
+      React.createElement('div', { 
+        className: 'container mx-auto px-6' 
+      },
+        React.createElement('div', { 
+          className: 'text-center max-w-3xl mx-auto mb-16 scroll-animate fade-up' 
+        },
+          React.createElement('span', { 
+            className: 'text-sm font-bold tracking-wider text-orange-600 uppercase' 
+          }, 'Eenvoudig te gebruiken'),
+          React.createElement('h2', { 
+            className: 'text-4xl font-bold mt-2 mb-4 text-gray-900' 
+          }, 'Hoe werkt WandelTracker?'),
+          React.createElement('p', { 
+            className: 'text-xl text-gray-600' 
+          }, 'Drie eenvoudige stappen om je virtuele wandelreis te beginnen')
+        ),
+        
+        React.createElement('div', { 
+          className: 'grid md:grid-cols-3 gap-10' 
+        },
+          // Feature 1
           React.createElement('div', { 
             className: 'scroll-animate slide-up p-6 bg-orange-50 rounded-xl shadow transition-transform hover:translate-y-[-8px]'
           },
@@ -366,7 +683,7 @@
                       d: 'M5 13l4 4L19 7'
                     })
                   ),
-                  'Geavanceerde kaarten'
+                'Geavanceerde kaarten'
                 ),
                 React.createElement('li', {
                   className: 'flex items-center'
@@ -774,7 +1091,7 @@
                   })
                 )
               ),
-      React.createElement('a', {
+              React.createElement('a', {
                 href: '#',
                 className: 'text-gray-400 hover:text-white transition-colors'
               },
@@ -796,7 +1113,8 @@
                   className: 'w-6 h-6',
                   fill: 'currentColor',
                   viewBox: '0 0 24 24'
-                },
+
+                            },
                   React.createElement('path', {
                     d: 'M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z'
                   })
@@ -1000,3 +1318,5 @@
 };
 
 export default Homepage;
+
+                                    
