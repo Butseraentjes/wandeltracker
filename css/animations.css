@@ -197,3 +197,127 @@
     opacity: 0;
   }
 }
+
+/* Aanvullende animaties voor Homepage */
+
+/* Animaties voor scroll-effecten */
+.scroll-animate {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.7s ease-out;
+}
+
+.scroll-animate.animate {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.scroll-animate.fade-up {
+  transform: translateY(30px);
+}
+
+.scroll-animate.slide-up {
+  transform: translateY(50px);
+}
+
+.scroll-animate.slide-right {
+  transform: translateX(-50px);
+}
+
+.scroll-animate.slide-left {
+  transform: translateX(50px);
+}
+
+/* Animatie vertragingen */
+.animation-delay-300 {
+  transition-delay: 300ms;
+}
+
+.animation-delay-600 {
+  transition-delay: 600ms;
+}
+
+/* Foto fade-in effect */
+.fade-in {
+  animation: fadeIn 1s ease-in-out forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Bounce animatie voor scroll indicator */
+.animate-bounce {
+  animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-15px);
+  }
+}
+
+/* Stijlen voor navigatie */
+.fixed {
+  transition: background-color 0.3s ease;
+}
+
+.fixed.scrolled {
+  background-color: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Button hover effecten */
+button {
+  transition: all 0.3s ease;
+}
+
+button:hover {
+  transform: translateY(-2px);
+}
+
+/* Kaart hover effecten */
+.hover\:translate-y-\[-8px\]:hover {
+  transform: translateY(-8px);
+}
+
+/* Aanvullende JS voor scroll-detectie */
+/* 
+// Voeg dit toe aan je app.js of als apart script
+document.addEventListener('DOMContentLoaded', function() {
+  // Header achtergrond aanpassen bij scrollen
+  const header = document.querySelector('header');
+  
+  window.addEventListener('scroll', function() {
+    if (window.scrollY > 50) {
+      header.classList.add('scrolled');
+    } else {
+      header.classList.remove('scrolled');
+    }
+  });
+
+  // Scroll animaties activeren
+  const animateOnScroll = () => {
+    const elements = document.querySelectorAll('.scroll-animate');
+    elements.forEach(el => {
+      const rect = el.getBoundingClientRect();
+      const isVisible = (rect.top <= window.innerHeight * 0.8);
+      if (isVisible) {
+        el.classList.add('animate');
+      }
+    });
+  };
+
+  window.addEventListener('scroll', animateOnScroll);
+  // Initiële check
+  setTimeout(animateOnScroll, 100);
+});
+*/
