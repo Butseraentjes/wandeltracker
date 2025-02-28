@@ -141,7 +141,6 @@ class HomeView extends View {
                         resolve();
                     }, 0);
                 });
-});
             }
         } catch (error) {
             console.error('Error in cleanup:', error);
@@ -392,118 +391,100 @@ document.addEventListener('DOMContentLoaded', () => {
             totalDistanceElement.textContent = `${totalDistance} km`;
             totalWalksElement.textContent = totalWalks;
         }
+    });
+});
 
-
-        <!-- Project Modal -->
-<div id="project-modal" class="modal hidden">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3>Nieuw Project</h3>
-            <button class="close-modal">&times;</button>
-        </div>
-        <form id="project-form">
-            <div class="form-group">
-                <label for="project-name">Projectnaam</label>
-                <input type="text" id="project-name" required placeholder="Bijv. Wandelen naar Parijs">
-            </div>
-            <div class="form-group">
-                <label for="project-location">Startlocatie</label>
-                <div class="grid grid-cols-2 gap-3">
-                    <div class="col-span-2">
-                        <input type="text" id="project-street" placeholder="Straat" required>
+// Initialize auth state observer
+initializeAuth(
+    // Login callback
+    (user) => {
+        console.log('User logged in:', user.email);
+        const loginContainer = document.getElementById('login-container');
+        if (loginContainer) {
+            loginContainer.innerHTML = ''; // Clear homepage
+        }
+        // Toon main content en navigatie
+        document.getElementById('main-content')?.classList.remove('hidden');
+        document.getElementById('main-nav')?.classList.remove('hidden');
+        document.getElementById('logout-btn')?.classList.remove('hidden');
+        
+        // Voeg gebruikersinfo toe met avatar
+        const userInfo = document.getElementById('user-info');
+        if (userInfo) {
+            // Eerste letter van e-mail als avatar
+            const firstLetter = user.email.charAt(0).toUpperCase();
+            userInfo.innerHTML = `
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 flex items-center justify-center text-white font-bold">
+                        ${firstLetter}
                     </div>
-                    <div>
-                        <input type="text" id="project-number" placeholder="Nummer" required>
-                    </div>
-                    <div>
-                        <input type="text" id="project-postal" placeholder="Postcode" required>
-                    </div>
-                    <div class="col-span-2">
-                        <input type="text" id="project-city" placeholder="Gemeente" required>
-                    </div>
+                    <span class="hidden md:inline">${user.email}</span>
                 </div>
-            </div>
-            <div class="form-group">
-                <label for="project-description">Beschrijving (optioneel)</label>
-                <textarea id="project-description" placeholder="Bijv. Dagelijkse wandelingen richting Parijs" rows="3"></textarea>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="secondary-btn" id="cancel-project">Annuleren</button>
-                <button type="submit" class="primary-btn">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1">
-                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                        <polyline points="7 3 7 8 15 8"></polyline>
-                    </svg>
-                    Project Aanmaken
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- Walk Modal -->
-<div id="walk-modal" class="modal hidden">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3>Wandeling Toevoegen</h3>
-            <button class="close-modal">&times;</button>
-        </div>
-        <form id="walk-form">
-            <div class="form-group">
-                <label for="walk-date">Datum</label>
-                <input type="text" id="walk-date" readonly class="bg-gray-50 cursor-not-allowed">
-                <p class="text-sm text-gray-500 mt-1">De geselecteerde datum is vastgezet</p>
-            </div>
-            <div class="form-group">
-                <label for="walk-distance">Aantal kilometers</label>
-                <div class="flex items-center">
-                    <input type="number" id="walk-distance" step="0.1" min="0" required class="mr-2">
-                    <span class="text-gray-600">km</span>
+            `;
+        }
+        
+        // Toon welkomstbericht de eerste keer
+        const lastLogin = localStorage.getItem('lastLogin');
+        const now = new Date().toDateString();
+        
+        if (lastLogin !== now) {
+            const notification = document.createElement('div');
+            notification.className = 'fixed bottom-4 right-4 bg-white border-l-4 border-orange-500 text-gray-700 p-4 rounded shadow-lg max-w-sm';
+            notification.innerHTML = `
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-orange-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm font-medium">Welkom terug, ${user.displayName || user.email.split('@')[0]}!</p>
+                        <p class="text-xs text-gray-500 mt-1">Je bent succesvol ingelogd. Tijd om te wandelen!</p>
+                    </div>
+                    <button class="ml-auto flex-shrink-0 text-gray-400 hover:text-gray-500">
+                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
                 </div>
-                <p class="text-sm text-gray-500 mt-1">Voer de afstand in die je vandaag hebt gewandeld</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="secondary-btn" id="cancel-walk">Annuleren</button>
-                <button type="submit" class="primary-btn">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1">
-                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                        <polyline points="7 3 7 8 15 8"></polyline>
-                    </svg>
-                    Opslaan
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
+            `;
+            document.body.appendChild(notification);
+            
+            // Notificatie verwijderen bij klikken op close button
+            notification.querySelector('button').addEventListener('click', () => {
+                notification.remove();
+            });
+            
+            // Notificatie na 5 seconden verwijderen
+            setTimeout(() => {
+                notification.classList.add('opacity-0');
+                notification.style.transition = 'opacity 0.5s ease';
+                setTimeout(() => notification.remove(), 500);
+            }, 5000);
+            
+            localStorage.setItem('lastLogin', now);
+        }
+        
+        router.start();
+    },
+    // Logout callback
+    () => {
+        console.log('User logged out');
+        // Verberg main content en navigatie
+        document.getElementById('main-content')?.classList.add('hidden');
+        document.getElementById('main-nav')?.classList.add('hidden');
+        document.getElementById('logout-btn')?.classList.add('hidden');
+        const userInfo = document.getElementById('user-info');
+        if (userInfo) userInfo.textContent = '';
 
-<!-- Goal Modal -->
-<div id="goal-modal" class="modal hidden">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3>Voeg een doel toe</h3>
-            <button class="close-modal">&times;</button>
-        </div>
-        <form id="goal-form">
-            <div class="form-group">
-                <label for="goal-city">Gemeente / Stad</label>
-                <input type="text" id="goal-city" required placeholder="Bijv. Parijs, Rome, Barcelona">
-                <p class="text-sm text-gray-500 mt-1">Voer de bestemming in waar je naartoe wilt wandelen</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="secondary-btn" id="cancel-goal">Annuleren</button>
-                <button type="submit" class="primary-btn">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1">
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <line x1="12" y1="8" x2="12" y2="16"></line>
-                        <line x1="8" y1="12" x2="16" y2="12"></line>
-                    </svg>
-                    Opslaan
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
+        // Toon homepage
+        const loginContainer = document.getElementById('login-container');
+        if (loginContainer) {
+            const root = ReactDOM.createRoot(loginContainer);
+            root.render(React.createElement(Homepage));
+        }
+    }
+);
 
-
+// Start router
+router.start();
