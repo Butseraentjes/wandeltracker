@@ -334,4 +334,110 @@ footer {
         flex-direction: column;
         align-items: center;
     }
+
+    /* CSS aanpassingen voor afbeeldings-integratie */
+
+/* Afbeeldingscontainer styling */
+.destination-image-container {
+    position: relative;
+    width: 100%;
+    height: 200px;
+    background-size: cover;
+    background-position: center;
+    background-color: var(--background-color);
+    overflow: hidden;
+}
+
+.destination-image-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.destination-card:hover .destination-image-container img {
+    transform: scale(1.05);
+}
+
+.destination-card {
+    background-color: var(--card-background);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: box-shadow 0.3s ease;
+}
+
+.destination-card:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.destination-info {
+    padding: 1rem;
+}
+
+.destination-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.destination-distance {
+    color: var(--primary-color);
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Banner styling */
+.hero-banner {
+    position: relative;
+    height: 500px;
+    background-size: cover;
+    background-position: center;
+    color: white;
+}
+
+.hero-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.6));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.hero-content {
+    max-width: 800px;
+    text-align: center;
+    padding: 0 1rem;
+}
+
+.hero-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.hero-description {
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+}
+
+/* Media queries voor responsiviteit */
+@media (max-width: 768px) {
+    .hero-banner {
+        height: 400px;
+    }
+    
+    .hero-title {
+        font-size: 2rem;
+    }
+    
+    .destination-image-container {
+        height: 150px;
+    }
 }
