@@ -1,0 +1,199 @@
+/* animations.css - Animaties voor modern design */
+
+/* Blob animaties voor achtergrondvormen */
+.animate-blob {
+  animation: blob-animation 7s infinite;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+
+.animation-delay-300 {
+  animation-delay: 300ms;
+}
+
+.animation-delay-600 {
+  animation-delay: 600ms;
+}
+
+/* Titel animaties met shimmer effect */
+.hero-title {
+  animation: text-shimmer 3s infinite;
+  background-image: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 50%, rgba(255,255,255,0) 100%);
+  background-size: 200% 100%;
+}
+
+/* Fade-in effect voor afbeeldingen */
+.fade-in {
+  animation: fadeIn 1s ease-in-out forwards;
+}
+
+/* Scroll animaties voor elementen die in beeld komen */
+.scroll-animate {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.8s ease-out;
+}
+
+.scroll-animate.animate {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.scroll-animate.fade-up {
+  transform: translateY(30px);
+}
+
+.scroll-animate.slide-up {
+  transform: translateY(50px);
+}
+
+.scroll-animate.slide-right {
+  transform: translateX(-50px);
+}
+
+.scroll-animate.slide-left {
+  transform: translateX(50px);
+}
+
+.scroll-animate.scale-up {
+  transform: scale(0.9);
+}
+
+/* Zwevende elementen */
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+/* Achtergrond "particles" voor de hero sectie */
+.bg-particle {
+  position: absolute;
+  border-radius: 50%;
+  background-color: white;
+  opacity: 0.2;
+  animation: float 15s ease-in-out infinite;
+}
+
+/* Animatie voor de scroll pijl */
+.animate-bounce {
+  animation: bounce 2s infinite;
+}
+
+/* Hover effecten voor kaarten */
+.card-hover {
+  transition: all 0.3s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Animatie keyframes */
+@keyframes blob-animation {
+  0% {
+    transform: scale(1) translate(0, 0);
+  }
+  33% {
+    transform: scale(1.1) translate(5%, 5%);
+  }
+  66% {
+    transform: scale(0.9) translate(-5%, 5%);
+  }
+  100% {
+    transform: scale(1) translate(0, 0);
+  }
+}
+
+@keyframes text-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-15px);
+  }
+}
+
+/* Gradient animatie voor knoppen */
+.gradient-button {
+  background-size: 200% auto;
+  transition: 0.5s;
+  background-image: linear-gradient(45deg, #3b82f6 0%, #8b5cf6 50%, #3b82f6 100%);
+}
+
+.gradient-button:hover {
+  background-position: right center;
+}
+
+/* Pulse effect voor markers of highlights */
+.pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* 3D tilt effect voor kaarten (voeg data attribuut toe voor intensiteit) */
+.tilt-card {
+  transform-style: preserve-3d;
+  transition: transform 0.5s ease;
+}
+
+.tilt-card:hover {
+  transform: perspective(1000px) rotateX(5deg) rotateY(5deg);
+}
+
+/* Typische keyframes voor veelgebruikte animaties */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes ping {
+  75%, 100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
