@@ -14,6 +14,7 @@ const app = firebase.initializeApp({
 const auth = firebase.auth();
 const db = firebase.firestore();
 const provider = new firebase.auth.GoogleAuthProvider();
+const storage = firebase.storage();
 
 console.log('Firebase initialized successfully');
 
@@ -292,4 +293,39 @@ export async function updateProjectGoal(projectId, goalData) {
     }
 }
 
-export { db, auth };
+// Functie om profielfoto te uploaden
+export async function uploadProfileImage(file) {
+    try {
+        const user = auth.currentUser;
+        if (!user) throw new Error("Geen gebruiker ingelogd");
+
+        // Controleer bestandsgrootte (max 1MB)
+        if (file.size > 1024 * 1024) {
+            throw new Error("Afbeelding mag maximaal 1MB groot zijn");
+        }
+
+        // Maak een reference naar de opslaglocatie
+        const storageRef = storage.ref();
+        const fileRef = storageRef.child(`profile-images/${user.uid}`);
+
+        // Upload het bestand
+        await fileRef.put(file);
+
+        // Haal de download URL op
+        const downloadURL = await fileRef.getDownloadURL();
+
+        // Update de gebruiker in Firestore
+        await db.collection("users").doc(user.uid).update({
+            profileImageUrl: downloadURL,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        return downloadURL;
+    } catch (error) {
+        console.error("Error uploading profile image:", error);
+        throw error;
+    }
+}
+
+
+export { db, auth, storage };
