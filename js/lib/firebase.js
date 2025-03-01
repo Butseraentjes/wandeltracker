@@ -315,6 +315,7 @@ export async function updateProjectGoal(projectId, goalData) {
 }
 
 // Functie om profielfoto te uploaden
+// Base64 versie van uploadProfileImage (geen Firebase Storage nodig)
 export async function uploadProfileImage(file) {
     try {
         const user = auth.currentUser;
@@ -325,31 +326,35 @@ export async function uploadProfileImage(file) {
             throw new Error("Afbeelding mag maximaal 1MB groot zijn");
         }
 
-        console.log("Uploading profile image for user:", user.uid);
-
-        // Maak een reference naar de opslaglocatie
-        const storageRef = storage.ref();
-        const fileRef = storageRef.child(`profile-images/${user.uid}`);
-
-        // Upload het bestand
-        const uploadTask = await fileRef.put(file);
-        console.log("Upload complete:", uploadTask);
-
-        // Haal de download URL op
-        const downloadURL = await fileRef.getDownloadURL();
-        console.log("Download URL:", downloadURL);
+        // Convert file to base64
+        const base64String = await convertFileToBase64(file);
+        console.log("Converted image to base64");
 
         // Update de gebruiker in Firestore
         await db.collection("users").doc(user.uid).set({
-            profileImageUrl: downloadURL,
+            profileImageBase64: base64String,
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         }, { merge: true });
 
-        return downloadURL;
+        return base64String;
     } catch (error) {
-        console.error("Error uploading profile image:", error);
+        console.error("Error processing profile image:", error);
         throw error;
     }
+}
+
+// Helper functie om een bestand naar base64 te converteren
+function convertFileToBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+            resolve(reader.result);
+        };
+        reader.onerror = (error) => {
+            reject(error);
+        };
+        reader.readAsDataURL(file);
+    });
 }
 
 export { db, auth, storage };
