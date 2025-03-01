@@ -314,42 +314,45 @@ export async function updateProjectGoal(projectId, goalData) {
     }
 }
 
-// Functie om profielfoto te uploaden
-export async function uploadProfileImage(file) {
-    try {
-        const user = auth.currentUser;
-        if (!user) throw new Error("Geen gebruiker ingelogd");
-
-        // Controleer bestandsgrootte (max 1MB)
-        if (file.size > 1024 * 1024) {
-            throw new Error("Afbeelding mag maximaal 1MB groot zijn");
+// Profielfoto upload
+const fileInput = document.getElementById('profile-image-upload');
+if (fileInput) {
+    fileInput.addEventListener('change', async (e) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            
+            // Check file size (max 1MB)
+            if (file.size > 1024 * 1024) {
+                alert('De afbeelding mag maximaal 1MB groot zijn.');
+                fileInput.value = '';
+                return;
+            }
+            
+            // Show preview
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const profileImage = document.getElementById('profile-image');
+                if (profileImage) {
+                    profileImage.src = e.target.result;
+                    profileImage.classList.remove('hidden');
+                    document.getElementById('profile-image-placeholder').classList.add('hidden');
+                }
+            };
+            reader.readAsDataURL(file);
+            
+            // Upload to Firebase
+            try {
+                document.getElementById('loading-spinner').classList.remove('hidden');
+                await uploadProfileImage(file);  // Gebruik de geïmporteerde functie
+                this.showNotification('Profielfoto succesvol geüpload!', 'success');
+            } catch (error) {
+                console.error('Error uploading profile image:', error);
+                this.showNotification('Er is een fout opgetreden bij het uploaden van je profielfoto.', 'error');
+            } finally {
+                document.getElementById('loading-spinner').classList.add('hidden');
+            }
         }
-
-        console.log("Uploading profile image for user:", user.uid);
-
-        // Maak een reference naar de opslaglocatie
-        const storageRef = firebase.storage().ref();
-        const fileRef = storageRef.child(`profile-images/${user.uid}`);
-
-        // Upload het bestand
-        const uploadTask = await fileRef.put(file);
-        console.log("Upload complete:", uploadTask);
-
-        // Haal de download URL op
-        const downloadURL = await fileRef.getDownloadURL();
-        console.log("Download URL:", downloadURL);
-
-        // Update de gebruiker in Firestore
-        await db.collection("users").doc(user.uid).set({
-            profileImageUrl: downloadURL,
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
-
-        return downloadURL;
-    } catch (error) {
-        console.error("Error uploading profile image:", error);
-        throw error;
-    }
+    });
 }
 
 export { db, auth, storage };
