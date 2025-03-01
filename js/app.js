@@ -1,6 +1,6 @@
 import { ProjectDetailView } from './views/ProjectDetailView.js';  
 import { Router, View } from './lib/router.js';
-import { initializeAuth, loginWithGoogle, logout, createProject, createProjectWithGeocode, db, auth } from './lib/firebase.js';
+import { initializeAuth, loginWithGoogle, logout, createProject, createProjectWithGeocode, db, auth, uploadProfileImage } from './lib/firebase.js';
 import Homepage from './components/Homepage.js';
 
 // Home View
@@ -318,8 +318,10 @@ if (fileInput) {
             // Upload to Firebase
             try {
                 document.getElementById('loading-spinner').classList.remove('hidden');
-                const { uploadProfileImage } = await import('../lib/firebase.js');
+                
+                // Direct uploadProfileImage gebruiken (geen dynamische import)
                 await uploadProfileImage(file);
+                
                 this.showNotification('Profielfoto succesvol geüpload!', 'success');
             } catch (error) {
                 console.error('Error uploading profile image:', error);
