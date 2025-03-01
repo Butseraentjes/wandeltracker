@@ -1044,3 +1044,12 @@ class TimelineView extends View {
         }
     }
 }
+
+// Update de routes configuratie
+const routes = {
+    '/': { view: HomeView },
+    '/settings': { view: SettingsView },
+    '/timeline': { view: TimelineView }, // Nieuwe route
+    '/404': { view: NotFoundView },
+    '/project/:id': { view: ProjectDetailView }
+};
