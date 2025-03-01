@@ -325,21 +325,25 @@ export async function uploadProfileImage(file) {
             throw new Error("Afbeelding mag maximaal 1MB groot zijn");
         }
 
+        console.log("Uploading profile image for user:", user.uid);
+
         // Maak een reference naar de opslaglocatie
-        const storageRef = storage.ref();
+        const storageRef = firebase.storage().ref();
         const fileRef = storageRef.child(`profile-images/${user.uid}`);
 
         // Upload het bestand
-        await fileRef.put(file);
+        const uploadTask = await fileRef.put(file);
+        console.log("Upload complete:", uploadTask);
 
         // Haal de download URL op
         const downloadURL = await fileRef.getDownloadURL();
+        console.log("Download URL:", downloadURL);
 
         // Update de gebruiker in Firestore
-        await db.collection("users").doc(user.uid).update({
+        await db.collection("users").doc(user.uid).set({
             profileImageUrl: downloadURL,
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
+        }, { merge: true });
 
         return downloadURL;
     } catch (error) {
@@ -347,6 +351,5 @@ export async function uploadProfileImage(file) {
         throw error;
     }
 }
-
 
 export { db, auth, storage };
