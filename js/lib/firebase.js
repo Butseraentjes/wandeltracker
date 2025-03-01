@@ -267,6 +267,7 @@ export function subscribeToWalks(projectId, callback) {
         });
 }
 
+// In firebase.js - saveWalk functie
 export async function saveWalk(projectId, walkData) {
     try {
         const user = auth.currentUser;
@@ -292,6 +293,32 @@ export async function saveWalk(projectId, walkData) {
         return walkRef.id;
     } catch (error) {
         console.error("Error saving walk:", error);
+        throw error;
+    }
+}
+
+// In firebase.js - createProject en createProjectWithGeocode functies
+export async function createProject(projectData) {
+    try {
+        const user = auth.currentUser;
+        if (!user) throw new Error("Geen gebruiker ingelogd");
+
+        const projectsRef = db.collection("projects");
+        const newProjectRef = projectsRef.doc();
+
+        await newProjectRef.set({
+            ...projectData,
+            userId: user.uid,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        // Genereer tijdlijnactiviteit
+        const { createProjectActivity } = await import('./activities.js');
+        await createProjectActivity({id: newProjectRef.id, ...projectData});
+
+        return newProjectRef.id;
+    } catch (error) {
+        console.error("Error creating project:", error);
         throw error;
     }
 }
