@@ -963,3 +963,84 @@ initializeAuth(
 
 // Start router
 router.start();
+
+// Tijdlijn View
+class TimelineView extends View {
+    constructor() {
+        super();
+        this.root = null;
+        this.isDestroyed = false;
+    }
+
+    async render() {
+        console.log('TimelineView render start');
+        
+        const mainContent = document.getElementById('main-content');
+        if (!mainContent || this.isDestroyed) return;
+
+        // Setup base structure
+        mainContent.innerHTML = `
+            <div class="timeline-container">
+                <div class="dashboard-header mb-6">
+                    <div class="flex flex-col">
+                        <h2 class="text-2xl font-bold">Tijdlijn</h2>
+                        <p class="text-gray-600 text-sm">Volg wandelavonturen van jezelf en anderen</p>
+                    </div>
+                </div>
+                <div id="timeline-container"></div>
+            </div>
+        `;
+
+        try {
+            // Mount React component
+            const container = document.getElementById('timeline-container');
+            if (!container || this.isDestroyed) return;
+
+            if (!this.root) {
+                const { default: Timeline } = await import('./components/Timeline.js');
+                this.root = ReactDOM.createRoot(container);
+                if (!this.isDestroyed) {
+                    this.root.render(React.createElement(Timeline));
+                }
+            }
+            
+            console.log('TimelineView render complete');
+        } catch (error) {
+            console.error('Error rendering Timeline:', error);
+            const container = document.getElementById('timeline-container');
+            if (container && !this.isDestroyed) {
+                container.innerHTML = `
+                    <div class="bg-red-50 text-red-600 p-6 rounded-lg shadow text-center border border-red-200 mt-8">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 mx-auto mb-4 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <h3 class="text-lg font-semibold mb-2">Er is iets misgegaan</h3>
+                        <p>Er is een fout opgetreden bij het laden van de tijdlijn. Probeer het later opnieuw.</p>
+                    </div>
+                `;
+            }
+        }
+
+        return '';
+    }
+
+    async cleanup() {
+        console.log('TimelineView cleanup start');
+        this.isDestroyed = true;
+
+        try {
+            // Cleanup React root
+            if (this.root) {
+                await new Promise(resolve => {
+                    setTimeout(() => {
+                        this.root.unmount();
+                        this.root = null;
+                        resolve();
+                    }, 0);
+                });
+            }
+        } catch (error) {
+            console.error('Error in cleanup:', error);
+        }
+    }
+}
