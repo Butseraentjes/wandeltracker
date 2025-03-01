@@ -289,35 +289,47 @@ class SettingsView extends View {
             });
         }
         
-        // Profielfoto upload
-        const fileInput = document.getElementById('profile-image-upload');
-        if (fileInput) {
-            fileInput.addEventListener('change', (e) => {
-                if (e.target.files && e.target.files[0]) {
-                    // Show preview
-                    const file = e.target.files[0];
-                    const reader = new FileReader();
-                    
-                    reader.onload = (e) => {
-                        const profileImage = document.getElementById('profile-image');
-                        if (profileImage) {
-                            profileImage.src = e.target.result;
-                            profileImage.classList.remove('hidden');
-                            document.getElementById('profile-image-placeholder').classList.add('hidden');
-                        }
-                    };
-                    
-                    // Check file size (max 1MB)
-                    if (file.size > 1024 * 1024) {
-                        alert('De afbeelding mag maximaal 1MB groot zijn.');
-                        fileInput.value = '';
-                        return;
-                    }
-                    
-                    reader.readAsDataURL(file);
+// Profielfoto upload
+const fileInput = document.getElementById('profile-image-upload');
+if (fileInput) {
+    fileInput.addEventListener('change', async (e) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            
+            // Check file size (max 1MB)
+            if (file.size > 1024 * 1024) {
+                alert('De afbeelding mag maximaal 1MB groot zijn.');
+                fileInput.value = '';
+                return;
+            }
+            
+            // Show preview
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const profileImage = document.getElementById('profile-image');
+                if (profileImage) {
+                    profileImage.src = e.target.result;
+                    profileImage.classList.remove('hidden');
+                    document.getElementById('profile-image-placeholder').classList.add('hidden');
                 }
-            });
+            };
+            reader.readAsDataURL(file);
+            
+            // Upload to Firebase
+            try {
+                document.getElementById('loading-spinner').classList.remove('hidden');
+                const { uploadProfileImage } = await import('../lib/firebase.js');
+                await uploadProfileImage(file);
+                this.showNotification('Profielfoto succesvol geüpload!', 'success');
+            } catch (error) {
+                console.error('Error uploading profile image:', error);
+                this.showNotification('Er is een fout opgetreden bij het uploaden van je profielfoto.', 'error');
+            } finally {
+                document.getElementById('loading-spinner').classList.add('hidden');
+            }
         }
+    });
+}
         
         // Account verwijderen
         const deleteAccountBtn = document.getElementById('delete-account-btn');
