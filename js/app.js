@@ -175,79 +175,80 @@ class SettingsView extends View {
         this.setupEventListeners();
     }
     
-    populateFormFields() {
-        if (!this.user || !this.userSettings) return;
-        
-        // Email (altijd vanuit auth object)
-        const emailInput = document.getElementById('user-email');
-        if (emailInput) emailInput.value = this.user.email || '';
-        
-        // Persoonlijke gegevens
-        const firstNameInput = document.getElementById('first-name');
-        const lastNameInput = document.getElementById('last-name');
-        const displayNameInput = document.getElementById('display-name');
-        const birthdateInput = document.getElementById('birthdate');
-        const bioInput = document.getElementById('bio');
-        
-        if (firstNameInput) firstNameInput.value = this.userSettings.firstName || '';
-        if (lastNameInput) lastNameInput.value = this.userSettings.lastName || '';
-        if (displayNameInput) displayNameInput.value = this.userSettings.displayName || '';
-        if (birthdateInput && this.userSettings.birthdate) {
-            // Converteer Firebase timestamp naar datum string
-            const birthdate = this.userSettings.birthdate instanceof firebase.firestore.Timestamp 
-                ? this.userSettings.birthdate.toDate() 
-                : new Date(this.userSettings.birthdate);
-                
-            birthdateInput.value = birthdate.toISOString().split('T')[0];
-        }
-        if (bioInput) bioInput.value = this.userSettings.bio || '';
-        
-        // Adresgegevens
-        const streetInput = document.getElementById('street');
-        const numberInput = document.getElementById('house-number');
-        const postalCodeInput = document.getElementById('postal-code');
-        const cityInput = document.getElementById('city');
-        const countryInput = document.getElementById('country');
-        
-        if (this.userSettings.address) {
-            if (streetInput) streetInput.value = this.userSettings.address.street || '';
-            if (numberInput) numberInput.value = this.userSettings.address.number || '';
-            if (postalCodeInput) postalCodeInput.value = this.userSettings.address.postalCode || '';
-            if (cityInput) cityInput.value = this.userSettings.address.city || '';
-            if (countryInput) countryInput.value = this.userSettings.address.country || 'Belgium';
-        }
-        
-        // Wandelvoorkeuren
-        const unitSelect = document.getElementById('distance-unit');
-        const stepLengthInput = document.getElementById('step-length');
-        const dailyGoalInput = document.getElementById('daily-goal');
-        const goalUnitSpan = document.getElementById('goal-unit');
-        
-        if (this.userSettings.preferences) {
-            if (unitSelect) unitSelect.value = this.userSettings.preferences.unit || 'km';
-            if (stepLengthInput) stepLengthInput.value = this.userSettings.preferences.stepLength || '0.75';
-            if (dailyGoalInput) dailyGoalInput.value = this.userSettings.preferences.dailyGoal || '5';
+// In app.js - binnen de SettingsView klasse
+populateFormFields() {
+    if (!this.user || !this.userSettings) return;
+    
+    // Email (altijd vanuit auth object)
+    const emailInput = document.getElementById('user-email');
+    if (emailInput) emailInput.value = this.user.email || '';
+    
+    // Persoonlijke gegevens
+    const firstNameInput = document.getElementById('first-name');
+    const lastNameInput = document.getElementById('last-name');
+    const displayNameInput = document.getElementById('display-name');
+    const birthdateInput = document.getElementById('birthdate');
+    const bioInput = document.getElementById('bio');
+    
+    if (firstNameInput) firstNameInput.value = this.userSettings.firstName || '';
+    if (lastNameInput) lastNameInput.value = this.userSettings.lastName || '';
+    if (displayNameInput) displayNameInput.value = this.userSettings.displayName || '';
+    if (birthdateInput && this.userSettings.birthdate) {
+        // Converteer Firebase timestamp naar datum string
+        const birthdate = this.userSettings.birthdate instanceof firebase.firestore.Timestamp 
+            ? this.userSettings.birthdate.toDate() 
+            : new Date(this.userSettings.birthdate);
             
-            // Update goal unit display
-            if (goalUnitSpan && unitSelect) {
-                goalUnitSpan.textContent = unitSelect.value === 'steps' ? 'stappen per dag' : 'km per dag';
-            }
-        }
+        birthdateInput.value = birthdate.toISOString().split('T')[0];
+    }
+    if (bioInput) bioInput.value = this.userSettings.bio || '';
+    
+    // Adresgegevens
+    const streetInput = document.getElementById('street');
+    const numberInput = document.getElementById('house-number');
+    const postalCodeInput = document.getElementById('postal-code');
+    const cityInput = document.getElementById('city');
+    const countryInput = document.getElementById('country');
+    
+    if (this.userSettings.address) {
+        if (streetInput) streetInput.value = this.userSettings.address.street || '';
+        if (numberInput) numberInput.value = this.userSettings.address.number || '';
+        if (postalCodeInput) postalCodeInput.value = this.userSettings.address.postalCode || '';
+        if (cityInput) cityInput.value = this.userSettings.address.city || '';
+        if (countryInput) countryInput.value = this.userSettings.address.country || 'Belgium';
+    }
+    
+    // Wandelvoorkeuren
+    const unitSelect = document.getElementById('distance-unit');
+    const stepLengthInput = document.getElementById('step-length');
+    const dailyGoalInput = document.getElementById('daily-goal');
+    const goalUnitSpan = document.getElementById('goal-unit');
+    
+    if (this.userSettings.preferences) {
+        if (unitSelect) unitSelect.value = this.userSettings.preferences.unit || 'km';
+        if (stepLengthInput) stepLengthInput.value = this.userSettings.preferences.stepLength || '0.75';
+        if (dailyGoalInput) dailyGoalInput.value = this.userSettings.preferences.dailyGoal || '5';
         
-        // Profielfoto
-        const profileImageElement = document.getElementById('profile-image');
-        if (profileImageElement && this.userSettings.profileImageUrl) {
-            profileImageElement.src = this.userSettings.profileImageUrl;
-            profileImageElement.classList.remove('hidden');
-            document.getElementById('profile-image-placeholder').classList.add('hidden');
-        }
-        
-        // Hobby's
-        const hobbiesInput = document.getElementById('hobbies');
-        if (hobbiesInput && this.userSettings.hobbies) {
-            hobbiesInput.value = this.userSettings.hobbies.join(', ');
+        // Update goal unit display
+        if (goalUnitSpan && unitSelect) {
+            goalUnitSpan.textContent = unitSelect.value === 'steps' ? 'stappen per dag' : 'km per dag';
         }
     }
+    
+    // Profielfoto (nu met base64)
+    const profileImageElement = document.getElementById('profile-image');
+    if (profileImageElement && this.userSettings.profileImageBase64) {
+        profileImageElement.src = this.userSettings.profileImageBase64;
+        profileImageElement.classList.remove('hidden');
+        document.getElementById('profile-image-placeholder').classList.add('hidden');
+    }
+    
+    // Hobby's
+    const hobbiesInput = document.getElementById('hobbies');
+    if (hobbiesInput && this.userSettings.hobbies) {
+        hobbiesInput.value = this.userSettings.hobbies.join(', ');
+    }
+}
     
     setupEventListeners() {
         // Unit select change handler
