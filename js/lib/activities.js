@@ -30,6 +30,7 @@ export async function createActivity(activityData) {
             ...activityData
         });
 
+        console.log("Activity created:", newActivityRef.id);
         return newActivityRef.id;
     } catch (error) {
         console.error("Error creating activity:", error);
@@ -43,18 +44,25 @@ export function subscribeToActivities(callback, limit = 20) {
     const user = auth.currentUser;
     if (!user) return null;
 
-    // Eerst alleen eigen activiteiten weergeven
-    // Later aanpassen voor vrienden
-    return db.collection("activities")
-        .where("userId", "==", user.uid)
-        .orderBy("createdAt", "desc")
-        .limit(limit)
-        .onSnapshot(
+    console.log('User found, setting up query for:', user.uid);
+    
+    try {
+        // Query opbouwen
+        const query = db.collection("activities")
+            .where("userId", "==", user.uid)
+            .orderBy("createdAt", "desc")
+            .limit(limit);
+        
+        console.log('Query created, attaching listener');
+        
+        // Luisteraar toevoegen
+        return query.onSnapshot(
             (snapshot) => {
                 const activities = snapshot.docs.map(doc => ({
                     id: doc.id,
                     ...doc.data()
                 }));
+                console.log('Received activities:', activities);
                 callback(activities);
             },
             (error) => {
@@ -62,7 +70,14 @@ export function subscribeToActivities(callback, limit = 20) {
                 callback([]);
             }
         );
+    } catch (error) {
+        console.error('Error setting up activities subscription:', error);
+        callback([]);
+        return () => {}; // Dummy unsubscribe function
+    }
 }
+
+// De rest van je code blijft hetzelfde
 
 // Automatisch activiteiten genereren voor wandelingen
 export async function createWalkActivity(walkData, projectData) {
