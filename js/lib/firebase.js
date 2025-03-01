@@ -47,6 +47,7 @@ function showLogin() {
     if (userInfo) userInfo.textContent = '';
 }
 
+
 // Auth state observer
 export function initializeAuth(onLogin, onLogout) {
     console.log('Setting up auth state observer...');
@@ -56,10 +57,30 @@ export function initializeAuth(onLogin, onLogout) {
             showDashboard(user);
 
             try {
-                await db.collection("users").doc(user.uid).set({
-                    email: user.email,
-                    lastLogin: firebase.firestore.FieldValue.serverTimestamp()
-                }, { merge: true });
+                // Check if user document exists, if not create it
+                const userDoc = await db.collection("users").doc(user.uid).get();
+                
+                if (!userDoc.exists) {
+                    // Create new user document with defaults
+                    await db.collection("users").doc(user.uid).set({
+                        email: user.email,
+                        displayName: user.displayName || '',
+                        firstName: '',
+                        lastName: '',
+                        preferences: {
+                            unit: 'km',
+                            stepLength: 0.75,
+                            dailyGoal: 5
+                        },
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                } else {
+                    // Update lastLogin timestamp
+                    await db.collection("users").doc(user.uid).update({
+                        lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                }
             } catch (error) {
                 console.error("Error updating user data:", error);
             }
