@@ -316,34 +316,87 @@ export async function updateProjectGoal(projectId, goalData) {
 
 // Functie om profielfoto te uploaden
 // Base64 versie van uploadProfileImage (geen Firebase Storage nodig)
+// Base64 versie van uploadProfileImage met afbeelding compressie
 export async function uploadProfileImage(file) {
     try {
         const user = auth.currentUser;
         if (!user) throw new Error("Geen gebruiker ingelogd");
 
-        // Controleer bestandsgrootte (max 1MB)
-        if (file.size > 1024 * 1024) {
-            throw new Error("Afbeelding mag maximaal 1MB groot zijn");
+        // Controleer bestandsgrootte
+        if (file.size > 2 * 1024 * 1024) { // 2MB limiet voor invoer
+            throw new Error("Afbeelding mag maximaal 2MB groot zijn");
         }
 
-        // Convert file to base64
-        const base64String = await convertFileToBase64(file);
-        console.log("Converted image to base64");
+        // Verklein en comprimeer de afbeelding
+        const compressedBase64 = await resizeAndCompressImage(file, 400); // Max 400px
+        console.log("Compressed image size:", Math.round(compressedBase64.length / 1024), "KB");
+
+        // Controleer of de gecomprimeerde afbeelding onder de Firestore limiet blijft
+        if (compressedBase64.length > 900000) { // Iets onder 1MB limiet
+            throw new Error("Afbeelding is te groot, zelfs na compressie. Kies een kleinere afbeelding.");
+        }
 
         // Update de gebruiker in Firestore
         await db.collection("users").doc(user.uid).set({
-            profileImageBase64: base64String,
+            profileImageBase64: compressedBase64,
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         }, { merge: true });
 
-        return base64String;
+        return compressedBase64;
     } catch (error) {
         console.error("Error processing profile image:", error);
         throw error;
     }
 }
 
-// Helper functie om een bestand naar base64 te converteren
+// Helper functie om een afbeelding te verkleinen en comprimeren
+function resizeAndCompressImage(file, maxDimension) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const img = new Image();
+            img.onload = () => {
+                // Bereken de nieuwe dimensies
+                let width = img.width;
+                let height = img.height;
+                
+                if (width > height) {
+                    if (width > maxDimension) {
+                        height = Math.round(height * (maxDimension / width));
+                        width = maxDimension;
+                    }
+                } else {
+                    if (height > maxDimension) {
+                        width = Math.round(width * (maxDimension / height));
+                        height = maxDimension;
+                    }
+                }
+                
+                // Teken de verkleinde afbeelding op een canvas
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                
+                // Converteer naar base64 met compressie
+                const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7); // 0.7 = 70% kwaliteit
+                resolve(compressedBase64);
+            };
+            img.onerror = () => {
+                reject(new Error('Er is een fout opgetreden bij het laden van de afbeelding'));
+            };
+            img.src = event.target.result;
+        };
+        reader.onerror = () => {
+            reject(new Error('Er is een fout opgetreden bij het lezen van het bestand'));
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+// Helper functie om een bestand naar base64 te converteren (je kunt deze houden voor andere doeleinden)
 function convertFileToBase64(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
