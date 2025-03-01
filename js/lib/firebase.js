@@ -47,7 +47,6 @@ function showLogin() {
     if (userInfo) userInfo.textContent = '';
 }
 
-
 // Auth state observer
 export function initializeAuth(onLogin, onLogout) {
     console.log('Setting up auth state observer...');
@@ -131,6 +130,10 @@ export async function createProject(projectData) {
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
 
+        // Genereer tijdlijnactiviteit
+        const { createProjectActivity } = await import('./activities.js');
+        await createProjectActivity({id: newProjectRef.id, ...projectData});
+
         return newProjectRef.id;
     } catch (error) {
         console.error("Error creating project:", error);
@@ -178,6 +181,10 @@ export async function createProjectWithGeocode(projectData) {
             userId: user.uid,
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
+
+        // Genereer tijdlijnactiviteit
+        const { createProjectActivity } = await import('./activities.js');
+        await createProjectActivity({id: newProjectRef.id, ...projectData});
 
         return newProjectRef.id;
     } catch (error) {
@@ -274,6 +281,14 @@ export async function saveWalk(projectId, walkData) {
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
 
+        // Haal projectgegevens op
+        const projectDoc = await db.collection("projects").doc(projectId).get();
+        const projectData = projectDoc.data();
+        
+        // Genereer tijdlijnactiviteit
+        const { createWalkActivity } = await import('./activities.js');
+        await createWalkActivity({...walkData, id: walkData.date}, {id: projectId, ...projectData});
+
         return walkRef.id;
     } catch (error) {
         console.error("Error saving walk:", error);
@@ -314,8 +329,6 @@ export async function updateProjectGoal(projectId, goalData) {
     }
 }
 
-// Functie om profielfoto te uploaden
-// Base64 versie van uploadProfileImage (geen Firebase Storage nodig)
 // Base64 versie van uploadProfileImage met afbeelding compressie
 export async function uploadProfileImage(file) {
     try {
@@ -396,7 +409,7 @@ function resizeAndCompressImage(file, maxDimension) {
     });
 }
 
-// Helper functie om een bestand naar base64 te converteren (je kunt deze houden voor andere doeleinden)
+// Helper functie om een bestand naar base64 te converteren (voor andere doeleinden)
 function convertFileToBase64(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
