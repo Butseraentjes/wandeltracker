@@ -290,6 +290,7 @@ populateFormFields() {
             });
         }
         
+// In app.js - binnen de SettingsView klasse, in de setupEventListeners methode
 // Profielfoto upload
 const fileInput = document.getElementById('profile-image-upload');
 if (fileInput) {
@@ -304,7 +305,7 @@ if (fileInput) {
                 return;
             }
             
-            // Show preview
+            // Show preview direct van de file reader
             const reader = new FileReader();
             reader.onload = (e) => {
                 const profileImage = document.getElementById('profile-image');
@@ -316,17 +317,17 @@ if (fileInput) {
             };
             reader.readAsDataURL(file);
             
-            // Upload to Firebase
+            // Upload to Firestore als base64
             try {
                 document.getElementById('loading-spinner').classList.remove('hidden');
                 
-                // Direct uploadProfileImage gebruiken (geen dynamische import)
+                // Gebruik de uploadProfileImage functie uit firebase.js
                 await uploadProfileImage(file);
                 
-                this.showNotification('Profielfoto succesvol geüpload!', 'success');
+                this.showNotification('Profielfoto succesvol opgeslagen!', 'success');
             } catch (error) {
-                console.error('Error uploading profile image:', error);
-                this.showNotification('Er is een fout opgetreden bij het uploaden van je profielfoto.', 'error');
+                console.error('Error saving profile image:', error);
+                this.showNotification('Er is een fout opgetreden bij het opslaan van je profielfoto.', 'error');
             } finally {
                 document.getElementById('loading-spinner').classList.add('hidden');
             }
