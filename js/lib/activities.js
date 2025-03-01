@@ -64,41 +64,6 @@ export function subscribeToActivities(callback, limit = 20) {
         );
 }
 
-// Activiteit leuk vinden
-export async function likeActivity(activityId) {
-    try {
-        const user = auth.currentUser;
-        if (!user) throw new Error("Gebruiker niet ingelogd");
-
-        const activityRef = db.collection("activities").doc(activityId);
-        const likesRef = activityRef.collection("likes").doc(user.uid);
-        
-        const likeDoc = await likesRef.get();
-        
-        if (likeDoc.exists) {
-            // Ongedaan maken indien al leuk gevonden
-            await likesRef.delete();
-            await activityRef.update({
-                likes: firebase.firestore.FieldValue.increment(-1)
-            });
-            return false; // Niet meer leuk
-        } else {
-            // Markeer als leuk
-            await likesRef.set({
-                userId: user.uid,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            await activityRef.update({
-                likes: firebase.firestore.FieldValue.increment(1)
-            });
-            return true; // Nu leuk
-        }
-    } catch (error) {
-        console.error("Error liking activity:", error);
-        throw error;
-    }
-}
-
 // Automatisch activiteiten genereren voor wandelingen
 export async function createWalkActivity(walkData, projectData) {
     try {
