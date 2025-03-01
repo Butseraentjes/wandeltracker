@@ -150,6 +150,316 @@ class HomeView extends View {
 
 // Settings View
 class SettingsView extends View {
+    constructor() {
+        super();
+        this.user = null;
+        this.userSettings = null;
+    }
+    
+    async initialize() {
+        await super.initialize();
+        
+        // Laad gebruiker en instellingen
+        try {
+            this.user = auth.currentUser;
+            if (this.user) {
+                const userDoc = await db.collection('users').doc(this.user.uid).get();
+                this.userSettings = userDoc.data() || {};
+                this.populateFormFields();
+            }
+        } catch (error) {
+            console.error('Error loading user settings:', error);
+        }
+        
+        // Event listeners voor formulieren
+        this.setupEventListeners();
+    }
+    
+    populateFormFields() {
+        if (!this.user || !this.userSettings) return;
+        
+        // Email (altijd vanuit auth object)
+        const emailInput = document.getElementById('user-email');
+        if (emailInput) emailInput.value = this.user.email || '';
+        
+        // Persoonlijke gegevens
+        const firstNameInput = document.getElementById('first-name');
+        const lastNameInput = document.getElementById('last-name');
+        const displayNameInput = document.getElementById('display-name');
+        const birthdateInput = document.getElementById('birthdate');
+        const bioInput = document.getElementById('bio');
+        
+        if (firstNameInput) firstNameInput.value = this.userSettings.firstName || '';
+        if (lastNameInput) lastNameInput.value = this.userSettings.lastName || '';
+        if (displayNameInput) displayNameInput.value = this.userSettings.displayName || '';
+        if (birthdateInput && this.userSettings.birthdate) {
+            // Converteer Firebase timestamp naar datum string
+            const birthdate = this.userSettings.birthdate instanceof firebase.firestore.Timestamp 
+                ? this.userSettings.birthdate.toDate() 
+                : new Date(this.userSettings.birthdate);
+                
+            birthdateInput.value = birthdate.toISOString().split('T')[0];
+        }
+        if (bioInput) bioInput.value = this.userSettings.bio || '';
+        
+        // Adresgegevens
+        const streetInput = document.getElementById('street');
+        const numberInput = document.getElementById('house-number');
+        const postalCodeInput = document.getElementById('postal-code');
+        const cityInput = document.getElementById('city');
+        const countryInput = document.getElementById('country');
+        
+        if (this.userSettings.address) {
+            if (streetInput) streetInput.value = this.userSettings.address.street || '';
+            if (numberInput) numberInput.value = this.userSettings.address.number || '';
+            if (postalCodeInput) postalCodeInput.value = this.userSettings.address.postalCode || '';
+            if (cityInput) cityInput.value = this.userSettings.address.city || '';
+            if (countryInput) countryInput.value = this.userSettings.address.country || 'Belgium';
+        }
+        
+        // Wandelvoorkeuren
+        const unitSelect = document.getElementById('distance-unit');
+        const stepLengthInput = document.getElementById('step-length');
+        const dailyGoalInput = document.getElementById('daily-goal');
+        const goalUnitSpan = document.getElementById('goal-unit');
+        
+        if (this.userSettings.preferences) {
+            if (unitSelect) unitSelect.value = this.userSettings.preferences.unit || 'km';
+            if (stepLengthInput) stepLengthInput.value = this.userSettings.preferences.stepLength || '0.75';
+            if (dailyGoalInput) dailyGoalInput.value = this.userSettings.preferences.dailyGoal || '5';
+            
+            // Update goal unit display
+            if (goalUnitSpan && unitSelect) {
+                goalUnitSpan.textContent = unitSelect.value === 'steps' ? 'stappen per dag' : 'km per dag';
+            }
+        }
+        
+        // Profielfoto
+        const profileImageElement = document.getElementById('profile-image');
+        if (profileImageElement && this.userSettings.profileImageUrl) {
+            profileImageElement.src = this.userSettings.profileImageUrl;
+            profileImageElement.classList.remove('hidden');
+            document.getElementById('profile-image-placeholder').classList.add('hidden');
+        }
+        
+        // Hobby's
+        const hobbiesInput = document.getElementById('hobbies');
+        if (hobbiesInput && this.userSettings.hobbies) {
+            hobbiesInput.value = this.userSettings.hobbies.join(', ');
+        }
+    }
+    
+    setupEventListeners() {
+        // Unit select change handler
+        const unitSelect = document.getElementById('distance-unit');
+        const goalUnitSpan = document.getElementById('goal-unit');
+        const stepLengthContainer = document.getElementById('step-length-container');
+        
+        if (unitSelect && goalUnitSpan && stepLengthContainer) {
+            unitSelect.addEventListener('change', () => {
+                goalUnitSpan.textContent = unitSelect.value === 'steps' ? 'stappen per dag' : 'km per dag';
+                stepLengthContainer.classList.toggle('hidden', unitSelect.value !== 'steps');
+            });
+        }
+        
+        // Persoonlijke gegevens formulier
+        const personalForm = document.getElementById('personal-form');
+        if (personalForm) {
+            personalForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                await this.savePersonalInfo();
+            });
+        }
+        
+        // Adres formulier
+        const addressForm = document.getElementById('address-form');
+        if (addressForm) {
+            addressForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                await this.saveAddressInfo();
+            });
+        }
+        
+        // Wandelvoorkeuren formulier
+        const preferencesForm = document.getElementById('preferences-form');
+        if (preferencesForm) {
+            preferencesForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                await this.savePreferences();
+            });
+        }
+        
+        // Profielfoto upload
+        const fileInput = document.getElementById('profile-image-upload');
+        if (fileInput) {
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files && e.target.files[0]) {
+                    // Show preview
+                    const file = e.target.files[0];
+                    const reader = new FileReader();
+                    
+                    reader.onload = (e) => {
+                        const profileImage = document.getElementById('profile-image');
+                        if (profileImage) {
+                            profileImage.src = e.target.result;
+                            profileImage.classList.remove('hidden');
+                            document.getElementById('profile-image-placeholder').classList.add('hidden');
+                        }
+                    };
+                    
+                    // Check file size (max 1MB)
+                    if (file.size > 1024 * 1024) {
+                        alert('De afbeelding mag maximaal 1MB groot zijn.');
+                        fileInput.value = '';
+                        return;
+                    }
+                    
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+        
+        // Account verwijderen
+        const deleteAccountBtn = document.getElementById('delete-account-btn');
+        if (deleteAccountBtn) {
+            deleteAccountBtn.addEventListener('click', async () => {
+                if (confirm('Weet je zeker dat je je account wilt verwijderen? Dit kan niet ongedaan worden gemaakt.')) {
+                    try {
+                        document.getElementById('loading-spinner').classList.remove('hidden');
+                        // Hier later code toevoegen om account te verwijderen
+                        alert('Deze functie is nog niet geïmplementeerd.');
+                    } catch (error) {
+                        console.error('Error deleting account:', error);
+                        alert('Er is een fout opgetreden bij het verwijderen van je account.');
+                    } finally {
+                        document.getElementById('loading-spinner').classList.add('hidden');
+                    }
+                }
+            });
+        }
+    }
+    
+    async savePersonalInfo() {
+        if (!this.user) return;
+        
+        try {
+            document.getElementById('loading-spinner').classList.remove('hidden');
+            
+            const firstName = document.getElementById('first-name').value;
+            const lastName = document.getElementById('last-name').value;
+            const displayName = document.getElementById('display-name').value;
+            const birthdate = document.getElementById('birthdate').value ? new Date(document.getElementById('birthdate').value) : null;
+            const bio = document.getElementById('bio').value;
+            const hobbies = document.getElementById('hobbies').value
+                .split(',')
+                .map(hobby => hobby.trim())
+                .filter(hobby => hobby.length > 0);
+            
+            await db.collection('users').doc(this.user.uid).set({
+                firstName,
+                lastName,
+                displayName,
+                birthdate: birthdate ? firebase.firestore.Timestamp.fromDate(birthdate) : null,
+                bio,
+                hobbies,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+            
+            this.showNotification('Persoonlijke gegevens opgeslagen!', 'success');
+        } catch (error) {
+            console.error('Error saving personal info:', error);
+            this.showNotification('Er is een fout opgetreden bij het opslaan van je gegevens.', 'error');
+        } finally {
+            document.getElementById('loading-spinner').classList.add('hidden');
+        }
+    }
+    
+    async saveAddressInfo() {
+        if (!this.user) return;
+        
+        try {
+            document.getElementById('loading-spinner').classList.remove('hidden');
+            
+            const street = document.getElementById('street').value;
+            const number = document.getElementById('house-number').value;
+            const postalCode = document.getElementById('postal-code').value;
+            const city = document.getElementById('city').value;
+            const country = document.getElementById('country').value;
+            
+            await db.collection('users').doc(this.user.uid).set({
+                address: {
+                    street,
+                    number,
+                    postalCode,
+                    city,
+                    country
+                },
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+            
+            this.showNotification('Adresgegevens opgeslagen!', 'success');
+        } catch (error) {
+            console.error('Error saving address info:', error);
+            this.showNotification('Er is een fout opgetreden bij het opslaan van je adresgegevens.', 'error');
+        } finally {
+            document.getElementById('loading-spinner').classList.add('hidden');
+        }
+    }
+    
+    async savePreferences() {
+        if (!this.user) return;
+        
+        try {
+            document.getElementById('loading-spinner').classList.remove('hidden');
+            
+            const unit = document.getElementById('distance-unit').value;
+            const stepLength = parseFloat(document.getElementById('step-length').value);
+            const dailyGoal = parseFloat(document.getElementById('daily-goal').value);
+            
+            await db.collection('users').doc(this.user.uid).set({
+                preferences: {
+                    unit,
+                    stepLength,
+                    dailyGoal
+                },
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+            
+            this.showNotification('Wandelvoorkeuren opgeslagen!', 'success');
+        } catch (error) {
+            console.error('Error saving preferences:', error);
+            this.showNotification('Er is een fout opgetreden bij het opslaan van je voorkeuren.', 'error');
+        } finally {
+            document.getElementById('loading-spinner').classList.add('hidden');
+        }
+    }
+    
+    showNotification(message, type = 'success') {
+        const notificationDiv = document.createElement('div');
+        notificationDiv.className = `fixed bottom-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
+            type === 'success' ? 'bg-green-100 border-l-4 border-green-500 text-green-700' :
+            'bg-red-100 border-l-4 border-red-500 text-red-700'
+        }`;
+        
+        notificationDiv.innerHTML = `
+            <div class="flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${
+                        type === 'success' ? 'M5 13l4 4L19 7' : 'M6 18L18 6M6 6l12 12'
+                    }" />
+                </svg>
+                <p>${message}</p>
+            </div>
+        `;
+        
+        document.body.appendChild(notificationDiv);
+        
+        setTimeout(() => {
+            notificationDiv.classList.add('fade-out');
+            setTimeout(() => notificationDiv.remove(), 300);
+        }, 3000);
+    }
+    
     async render() {
         return `
             <div class="settings">
@@ -167,52 +477,201 @@ class SettingsView extends View {
                     </a>
                 </div>
                 
+                <!-- Profiel sectie -->
                 <div class="bg-white p-6 rounded-xl shadow-md mb-6">
-                    <h3 class="text-lg font-semibold mb-4">Accountinstellingen</h3>
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-medium mb-2">E-mailadres</label>
-                        <div class="flex items-center">
-                            <input type="text" value="gebruiker@voorbeeld.nl" disabled class="border p-2 rounded mr-2 bg-gray-50 w-full">
-                            <button class="secondary-btn">Wijzigen</button>
+                    <h3 class="text-lg font-semibold mb-4">Profielgegevens</h3>
+                    
+                    <div class="flex flex-col md:flex-row gap-6 mb-6">
+                        <!-- Profielfoto -->
+                        <div class="md:w-1/3">
+                            <div class="text-center">
+                                <div class="relative w-40 h-40 mx-auto mb-4 rounded-full overflow-hidden border-4 border-gray-200">
+                                    <div id="profile-image-placeholder" class="absolute inset-0 bg-gray-100 flex items-center justify-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                        </svg>
+                                    </div>
+                                    <img id="profile-image" class="absolute inset-0 w-full h-full object-cover hidden" alt="Profielfoto">
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label for="profile-image-upload" class="cursor-pointer bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded inline-block">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        </svg>
+                                        Foto uploaden
+                                    </label>
+                                    <input id="profile-image-upload" type="file" accept="image/*" class="hidden">
+                                </div>
+                                <p class="text-xs text-gray-500">Maximum bestandsgrootte: 1MB</p>
+                            </div>
                         </div>
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-medium mb-2">Profielnaam</label>
-                        <div class="flex items-center">
-                            <input type="text" placeholder="Jouw naam" class="border p-2 rounded mr-2 w-full">
-                            <button class="secondary-btn">Opslaan</button>
+                        
+                        <!-- Persoonlijke gegevens -->
+                        <div class="md:w-2/3">
+                            <form id="personal-form">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                    <div>
+                                        <label for="first-name" class="block text-gray-700 text-sm font-medium mb-2">Voornaam</label>
+                                        <input type="text" id="first-name" class="border p-2 rounded w-full">
+                                    </div>
+                                    <div>
+                                        <label for="last-name" class="block text-gray-700 text-sm font-medium mb-2">Achternaam</label>
+                                        <input type="text" id="last-name" class="border p-2 rounded w-full">
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label for="display-name" class="block text-gray-700 text-sm font-medium mb-2">Profielnaam/Schermnaam</label>
+                                    <input type="text" id="display-name" class="border p-2 rounded w-full">
+                                    <p class="text-xs text-gray-500 mt-1">Dit is de naam die anderen te zien krijgen</p>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label for="birthdate" class="block text-gray-700 text-sm font-medium mb-2">Geboortedatum</label>
+                                    <input type="date" id="birthdate" class="border p-2 rounded w-full">
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label for="bio" class="block text-gray-700 text-sm font-medium mb-2">Over jezelf</label>
+                                    <textarea id="bio" rows="3" class="border p-2 rounded w-full" placeholder="Vertel iets over jezelf..."></textarea>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label for="hobbies" class="block text-gray-700 text-sm font-medium mb-2">Hobby's/Interesses</label>
+                                    <input type="text" id="hobbies" class="border p-2 rounded w-full" placeholder="Wandelen, lezen, fotografie, etc. (gescheiden door komma's)">
+                                </div>
+                                
+                                <button type="submit" class="primary-btn">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    Gegevens opslaan
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </div>
                 
+                <!-- Accountgegevens -->
                 <div class="bg-white p-6 rounded-xl shadow-md mb-6">
-                    <h3 class="text-lg font-semibold mb-4">Wandelinstellingen</h3>
+                    <h3 class="text-lg font-semibold mb-4">Accountgegevens</h3>
+                    
                     <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-medium mb-2">Standaard eenheid</label>
-                        <select class="border p-2 rounded w-full">
-                            <option>Kilometers (km)</option>
-                            <option>Mijlen (mi)</option>
-                        </select>
+                        <label for="user-email" class="block text-gray-700 text-sm font-medium mb-2">E-mailadres</label>
+                        <input type="email" id="user-email" disabled class="border p-2 rounded bg-gray-50 w-full">
+                        <p class="text-xs text-gray-500 mt-1">Je e-mailadres kan niet worden gewijzigd</p>
                     </div>
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-medium mb-2">Dagelijks wandeldoel</label>
-                        <div class="flex items-center">
-                            <input type="number" value="5" min="0" step="0.1" class="border p-2 rounded mr-2 w-24">
-                            <span class="text-gray-600">km per dag</span>
-                        </div>
-                    </div>
-                    <button class="primary-btn mt-2">Instellingen opslaan</button>
                 </div>
                 
+                <!-- Adresgegevens -->
+                <div class="bg-white p-6 rounded-xl shadow-md mb-6">
+                    <h3 class="text-lg font-semibold mb-4">Adresgegevens</h3>
+                    
+                    <form id="address-form">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                            <div class="md:col-span-2">
+                                <label for="street" class="block text-gray-700 text-sm font-medium mb-2">Straat</label>
+                                <input type="text" id="street" class="border p-2 rounded w-full">
+                            </div>
+                            <div>
+                                <label for="house-number" class="block text-gray-700 text-sm font-medium mb-2">Huisnummer</label>
+                                <input type="text" id="house-number" class="border p-2 rounded w-full">
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                            <div>
+                                <label for="postal-code" class="block text-gray-700 text-sm font-medium mb-2">Postcode</label>
+                                <input type="text" id="postal-code" class="border p-2 rounded w-full">
+                            </div>
+                            <div class="md:col-span-2">
+                                <label for="city" class="block text-gray-700 text-sm font-medium mb-2">Gemeente/Stad</label>
+                                <input type="text" id="city" class="border p-2 rounded w-full">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="country" class="block text-gray-700 text-sm font-medium mb-2">Land</label>
+                            <select id="country" class="border p-2 rounded w-full">
+                                <option value="Belgium">België</option>
+                                <option value="Netherlands">Nederland</option>
+                                <option value="Germany">Duitsland</option>
+                                <option value="France">Frankrijk</option>
+                                <option value="Luxembourg">Luxemburg</option>
+                            </select>
+                        </div>
+                        
+                        <button type="submit" class="primary-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            Adres opslaan
+                        </button>
+                    </form>
+                </div>
+                
+                <!-- Wandelvoorkeuren -->
+                <div class="bg-white p-6 rounded-xl shadow-md mb-6">
+                    <h3 class="text-lg font-semibold mb-4">Wandelvoorkeuren</h3>
+                    
+                    <form id="preferences-form">
+                        <div class="mb-4">
+                            <label for="distance-unit" class="block text-gray-700 text-sm font-medium mb-2">Voorkeurseenheid</label>
+                            <select id="distance-unit" class="border p-2 rounded w-full">
+                                <option value="km">Kilometers (km)</option>
+                                <option value="mi">Mijlen (mi)</option>
+                                <option value="steps">Stappen</option>
+                            </select>
+                            <p class="text-xs text-gray-500 mt-1">Kies hoe je wandelingen wilt bijhouden</p>
+                        </div>
+                        
+                        <div id="step-length-container" class="mb-4 hidden">
+                            <label for="step-length" class="block text-gray-700 text-sm font-medium mb-2">Gemiddelde staplengte (in meters)</label>
+                            <input type="number" id="step-length" value="0.75" min="0.1" max="2" step="0.01" class="border p-2 rounded w-full">
+                            <p class="text-xs text-gray-500 mt-1">Gemiddeld: Vrouwen ~0.67m, Mannen ~0.78m</p>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="daily-goal" class="block text-gray-700 text-sm font-medium mb-2">Dagelijks doel</label>
+                            <div class="flex items-center">
+                                <input type="number" id="daily-goal" value="5" min="0" step="0.1" class="border p-2 rounded mr-2 w-24">
+                                <span id="goal-unit" class="text-gray-600">km per dag</span>
+                            </div>
+                        </div>
+                        
+  <button type="submit" class="primary-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            Voorkeuren opslaan
+                        </button>
+                    </form>
+                </div>
+                
+                <!-- Account verwijderen -->
                 <div class="bg-white p-6 rounded-xl shadow-md">
                     <h3 class="text-lg font-semibold mb-4">Account verwijderen</h3>
                     <p class="text-gray-600 mb-4">Als je je account verwijdert, worden alle gegevens permanent gewist. Deze actie kan niet ongedaan worden gemaakt.</p>
-                    <button class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded font-medium transition">Account verwijderen</button>
+                    <button id="delete-account-btn" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded font-medium transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        Account verwijderen
+                    </button>
                 </div>
             </div>
         `;
     }
+    
+    async cleanup() {
+        // Cleanup event listeners if needed
+        super.cleanup();
+    }
 }
+                            
+
 
 // 404 View
 class NotFoundView extends View {
