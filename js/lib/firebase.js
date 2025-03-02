@@ -427,3 +427,21 @@ function convertFileToBase64(file) {
 }
 
 export { db, auth, storage };
+
+// In firebase.js voegen we een nieuwe functie toe om projecten te archiveren
+export async function toggleProjectArchiveStatus(projectId, archive) {
+    try {
+        const user = auth.currentUser;
+        if (!user) throw new Error("Geen gebruiker ingelogd");
+
+        await db.collection("projects").doc(projectId).update({
+            archived: archive,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        return true;
+    } catch (error) {
+        console.error("Error toggling project archive status:", error);
+        throw error;
+    }
+}
