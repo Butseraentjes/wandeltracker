@@ -923,34 +923,27 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    // Update statistieken na inladen van projecten
-    window.addEventListener('projectsLoaded', (e) => {
-        const projects = e.detail.projects || [];
-        
-        // Bijwerken projectenteller
-        const totalProjectsElement = document.getElementById('total-projects');
-        if (totalProjectsElement) {
-            totalProjectsElement.textContent = projects.length;
-        }
-        
-        // Bijwerken totale afstand en wandelingen
-        // Dit is een placeholder - in werkelijkheid zou je deze data uit de projecten moeten halen
-        const totalDistanceElement = document.getElementById('total-distance');
-        const totalWalksElement = document.getElementById('total-walks');
-        
-        if (totalDistanceElement && totalWalksElement) {
-            let totalDistance = 0;
-            let totalWalks = 0;
-            
-            // Hier zou je eigenlijk de wandelingen moeten ophalen en tellen
-            // Voor nu gebruiken we willekeurige waarden als voorbeeld
-            totalDistance = Math.floor(Math.random() * 100);
-            totalWalks = Math.floor(Math.random() * 20);
-            
-            totalDistanceElement.textContent = `${totalDistance} km`;
-            totalWalksElement.textContent = totalWalks;
-        }
-    });
+// Update statistieken na inladen van projecten
+window.addEventListener('projectsLoaded', (e) => {
+    const { projects, totalDistance, totalWalks, activeProjects } = e.detail;
+    
+    // Bijwerken projectenteller
+    const totalProjectsElement = document.getElementById('total-projects');
+    if (totalProjectsElement) {
+        totalProjectsElement.textContent = activeProjects || projects.length;
+    }
+    
+    // Bijwerken totale afstand en wandelingen
+    const totalDistanceElement = document.getElementById('total-distance');
+    const totalWalksElement = document.getElementById('total-walks');
+    
+    if (totalDistanceElement) {
+        totalDistanceElement.textContent = `${totalDistance.toFixed(1)} km`;
+    }
+    
+    if (totalWalksElement) {
+        totalWalksElement.textContent = totalWalks;
+    }
 });
 
 // Initialize auth state observer
