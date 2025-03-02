@@ -47,8 +47,10 @@ const ProjectList = () => {
         let totalDistance = 0;
         let totalWalks = 0;
         
-        // Voor elk project, haal wandelingen op en bereken afstanden
-        projectsData.forEach(project => {
+        // Filter actieve projecten en bereken totalen
+        const activeProjects = projectsData.filter(project => !project.archived);
+        
+        activeProjects.forEach(project => {
             if (project.totalDistance) {
                 totalDistance += project.totalDistance;
             }
@@ -63,7 +65,7 @@ const ProjectList = () => {
                 projects: projectsData,
                 totalDistance,
                 totalWalks,
-                activeProjects: projectsData.filter(p => !p.archived).length
+                activeProjects: activeProjects.length
             } 
         }));
     };
@@ -237,9 +239,9 @@ const ProjectList = () => {
                                 key: project.id || Math.random(),
                                 className: `project-card animate-slide-in ${delayClass} relative`
                             },
-                            // Archive/Unarchive button overlay
+                            // Archive/Unarchive button overlay - aangepast naar rechts met ruimte
                             React.createElement('button', {
-                                className: 'absolute top-3 right-3 bg-white rounded-full p-2 shadow hover:bg-gray-100 z-10',
+                                className: 'absolute top-3 right-12 bg-white rounded-full p-2 shadow hover:bg-gray-100 z-10',
                                 onClick: (e) => handleArchiveToggle(e, project.id, project.archived),
                                 title: project.archived ? 'Uit archief halen' : 'Archiveren'
                             },
@@ -261,21 +263,21 @@ const ProjectList = () => {
                                 )
                             ),
                             
+                            // Badge element voor nieuwe projecten - aangepast naar links
+                            project.createdAt && typeof project.createdAt.toDate === 'function' && 
+                            (new Date() - project.createdAt.toDate()) / (1000 * 60 * 60 * 24) < 7 ?
+                                React.createElement('span', { 
+                                    className: 'badge absolute top-3 left-3 z-10'
+                                }, 'Nieuw') : null,
+                            
                             // Clickable project card content
                             React.createElement('div', {
                                 className: 'cursor-pointer',
                                 onClick: () => handleProjectClick(project.id)
                             }, [
-                                // Badge element voor nieuwe projecten (voorbeeld: als project minder dan 7 dagen oud is)
-                                project.createdAt && typeof project.createdAt.toDate === 'function' && 
-                                (new Date() - project.createdAt.toDate()) / (1000 * 60 * 60 * 24) < 7 ?
-                                    React.createElement('span', { 
-                                        className: 'badge'
-                                    }, 'Nieuw') : null,
-                                    
-                                // Project titel
+                                // Project titel met ruimte voor badges/buttons
                                 React.createElement('h3', { 
-                                    className: 'text-lg font-semibold mb-2 text-primary mr-8'
+                                    className: 'text-lg font-semibold mb-2 text-primary mt-10 mr-8'
                                 }, project.name || 'Naamloos project'),
                                 
                                 // Locatie met icoon
