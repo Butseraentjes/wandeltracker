@@ -945,6 +945,7 @@ window.addEventListener('projectsLoaded', (e) => {
         totalWalksElement.textContent = totalWalks;
     }
 });
+});  
 
 // Initialize auth state observer
 initializeAuth(
