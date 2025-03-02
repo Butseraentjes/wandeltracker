@@ -239,45 +239,51 @@ const ProjectList = () => {
                                 key: project.id || Math.random(),
                                 className: `project-card animate-slide-in ${delayClass} relative`
                             },
-                            // Archive/Unarchive button overlay - aangepast naar rechts met ruimte
-                            React.createElement('button', {
-                                className: 'absolute top-3 right-12 bg-white rounded-full p-2 shadow hover:bg-gray-100 z-10',
-                                onClick: (e) => handleArchiveToggle(e, project.id, project.archived),
-                                title: project.archived ? 'Uit archief halen' : 'Archiveren'
-                            },
-                                React.createElement('svg', {
-                                    xmlns: 'http://www.w3.org/2000/svg',
-                                    className: 'h-5 w-5 text-gray-600',
-                                    fill: 'none',
-                                    viewBox: '0 0 24 24',
-                                    stroke: 'currentColor'
+                            // Hoofdcontainer voor badges en knoppen
+                            React.createElement('div', {
+                                className: 'flex justify-between items-start mb-2 pt-2 px-2'
+                            }, [
+                                // "Nieuw" badge in de linkerhoek
+                                project.createdAt && typeof project.createdAt.toDate === 'function' && 
+                                (new Date() - project.createdAt.toDate()) / (1000 * 60 * 60 * 24) < 7 ?
+                                    React.createElement('div', {
+                                        className: 'bg-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full'
+                                    }, 'Nieuw') : 
+                                    React.createElement('div'), // Lege placeholder voor layout balans
+                                
+                                // Archief knop in de rechterhoek
+                                React.createElement('button', {
+                                    className: 'bg-white rounded-full p-2 shadow hover:bg-gray-100 z-10',
+                                    onClick: (e) => handleArchiveToggle(e, project.id, project.archived),
+                                    title: project.archived ? 'Uit archief halen' : 'Archiveren'
                                 },
-                                    React.createElement('path', {
-                                        strokeLinecap: 'round',
-                                        strokeLinejoin: 'round',
-                                        strokeWidth: 2,
-                                        d: project.archived 
-                                            ? 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' 
-                                            : 'M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4'
-                                    })
+                                    React.createElement('svg', {
+                                        xmlns: 'http://www.w3.org/2000/svg',
+                                        className: 'h-5 w-5 text-gray-600',
+                                        fill: 'none',
+                                        viewBox: '0 0 24 24',
+                                        stroke: 'currentColor'
+                                    },
+                                        React.createElement('path', {
+                                            strokeLinecap: 'round',
+                                            strokeLinejoin: 'round',
+                                            strokeWidth: 2,
+                                            d: project.archived 
+                                                ? 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' 
+                                                : 'M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4'
+                                        })
+                                    )
                                 )
-                            ),
-                            
-                            // Badge element voor nieuwe projecten - aangepast naar links
-                            project.createdAt && typeof project.createdAt.toDate === 'function' && 
-                            (new Date() - project.createdAt.toDate()) / (1000 * 60 * 60 * 24) < 7 ?
-                                React.createElement('span', { 
-                                    className: 'badge absolute top-3 left-3 z-10'
-                                }, 'Nieuw') : null,
+                            ]),
                             
                             // Clickable project card content
                             React.createElement('div', {
-                                className: 'cursor-pointer',
+                                className: 'cursor-pointer p-4 pt-0',
                                 onClick: () => handleProjectClick(project.id)
                             }, [
-                                // Project titel met ruimte voor badges/buttons
+                                // Project titel
                                 React.createElement('h3', { 
-                                    className: 'text-lg font-semibold mb-2 text-primary mt-10 mr-8'
+                                    className: 'text-lg font-semibold mb-2 text-primary'
                                 }, project.name || 'Naamloos project'),
                                 
                                 // Locatie met icoon
