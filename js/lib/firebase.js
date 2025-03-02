@@ -193,7 +193,7 @@ export async function createProjectWithGeocode(projectData) {
     }
 }
 
-// Projecten ophalen
+// In firebase.js - subscribeToProjects functie aanpassen
 export function subscribeToProjects(callback) {
     console.log('Setting up projects subscription...');
     const user = auth.currentUser;
@@ -202,17 +202,51 @@ export function subscribeToProjects(callback) {
     return db.collection("projects")
         .where("userId", "==", user.uid)
         .onSnapshot(
-            (snapshot) => {
-                const projects = snapshot.docs.map(doc => ({
+            async (snapshot) => {
+                const projectsData = snapshot.docs.map(doc => ({
                     id: doc.id,
                     ...doc.data()
                 }));
-                projects.sort((a, b) => {
+                
+                // Voor elk project, laad de wandelingen
+                const projectsWithStats = await Promise.all(projectsData.map(async (project) => {
+                    try {
+                        const walksSnapshot = await db.collection("projects").doc(project.id)
+                            .collection("walks").get();
+                            
+                        const walks = walksSnapshot.docs.map(doc => ({
+                            id: doc.id,
+                            ...doc.data()
+                        }));
+                        
+                        // Bereken totale afstand
+                        const totalDistance = walks.reduce((total, walk) => {
+                            return total + (parseFloat(walk.distance) || 0);
+                        }, 0);
+                        
+                        return {
+                            ...project,
+                            totalDistance,
+                            walkCount: walks.length
+                        };
+                    } catch (error) {
+                        console.error(`Error loading walks for project ${project.id}:`, error);
+                        return {
+                            ...project,
+                            totalDistance: 0,
+                            walkCount: 0
+                        };
+                    }
+                }));
+                
+                projectsWithStats.sort((a, b) => {
+                    // Sorteer op tijd aangemaakt (nieuwste eerst)
                     const dateA = a.createdAt?.toDate?.() || new Date(0);
                     const dateB = b.createdAt?.toDate?.() || new Date(0);
                     return dateB - dateA;
                 });
-                callback(projects);
+                
+                callback(projectsWithStats);
             },
             (error) => {
                 console.error('Error in subscribeToProjects:', error);
